@@ -33,7 +33,6 @@ cmd({
 
         await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
 
-        // Fix: Changed endpoint path from /pair to /code based on server routing error (Cannot GET /pair)
         const apiUrl = `https://fatima-md-0b8680231a84.herokuapp.com/code?number=${phoneNumber}`;
         const { data } = await axios.get(apiUrl, { timeout: 30000 });
 
@@ -44,12 +43,14 @@ cmd({
             return reply("❌ *Pairing code generate nahi ho saka. Dobara koshish karein!*");
         }
 
+        // Code ko backticks (```) ke andar rakha hai taaki WhatsApp mein tap karke easily copy kiya ja sake
         const pairBox = `
 ╔════════════════════════╗
 ║   🔗 FATIMA-MD PAIRING 🔗   
 ╚════════════════════════╝
  📱 *Number:* \`+${phoneNumber}\`
- 🔑 *Pairing Code:* \`${code}\`
+ 🔑 *Pairing Code:* 
+\`\`\`${code}\`\`\`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 > ⚡ *Version:* \`12.00\`
 > 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
