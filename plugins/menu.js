@@ -27,13 +27,12 @@ const formatCategory = (category, cmds) => {
     const validCmds = cmds.filter(cmd => cmd.pattern && cmd.pattern.trim() !== '');
     if (validCmds.length === 0) return '';
     
-    let title = `\n┏━━━❮ 💎 *${toStylistUpper(category.toUpperCase())}* ❯━━━┈⊷\n`;
+    let title = `\n👑 *${toStylistUpper(category.toUpperCase())}* 👑\n`;
     let body = validCmds.map(cmd => {
         const commandName = toStylistUpper(cmd.pattern || '');
-        return `┃ ⚡ \`${commandName}\``;
-    }).join('\n');
-    let footer = `\n┗━━━━━━━━━━━━━━━━━━━┈⊷`;
-    return `${title}${body}${footer}`;
+        return `🧕🏻 \`${commandName}\``;
+    }).join(' | ');
+    return `${title}${body}\n`;
 };
 
 const isValidImageUrl = (url) => {
@@ -89,22 +88,22 @@ async (conn, mek, m, { from, reply, userConfig }) => {
         const BOT_IMAGE = userConfig?.BOT_IMAGE || userConfig?.BOT_MEDIA_URL || config.BOT_IMAGE || config.BOT_MEDIA_URL;
         
         let dec = `
-╭━━━〔 👑 *FATIMA-MD V12.00* 👑 〕━━━┈⊷
-┃ 👤 *Owner:* \`${OWNER_NAME}\`
-┃ ⚡ *Commands:* \`${totalCommands}\`
-┃ ⏳ *Runtime:* \`${runtime(process.uptime())}\`
-┃ 📡 *Prefix:* \`[ ${PREFIX} ]\`
-┃ ⚙️ *Mode:* \`${MODE}\`
-┃ 🏷️ *Version:* \`${VERSION}\`
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━┈⊷
-${menuSections}
+👑 *FATIMA-MD V12.00* 👑
 
+💎 *Owner:* \`${OWNER_NAME}\`
+💎 *Commands:* \`${totalCommands}\`
+💎 *Runtime:* \`${runtime(process.uptime())}\`
+💎 *Prefix:* \`[ ${PREFIX} ]\`
+💎 *Mode:* \`${MODE}\`
+💎 *Version:* \`${VERSION}\`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-> ⚡ *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*
+${menuSections}
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+>  👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*
 > 👑 *The Ultimate WhatsApp Bot Experience*`.trim();
 
         let imageToUse;
-        const localImagePath = path.join(__dirname, '../lib/jawadmd.jpg');
+        const localImagePath = path.join(__dirname, '../lib/fatimamd.jpg');
         
         if (isValidImageUrl(BOT_IMAGE)) {
             try {
