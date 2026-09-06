@@ -1,4 +1,7 @@
+import { fileURLToPath } from 'url';
 import { cmd } from '../command.js';
+
+const __filename = fileURLToPath(import.meta.url);
 
 const cleanId = (id) => id ? id.split('@')[0].split(':')[0] : '';
 
@@ -42,32 +45,52 @@ cmd({
     alias: ["k"],
     desc: "Kick a member from group",
     category: "group",
-    filename: import.meta.url
+    react: "👢",
+    filename: __filename
 },
-async (conn, mek, m, { reply, react, isBotOwner }) => {
+async (conn, mek, m, { reply, react, isBotOwner, sender, from }) => {
     try {
         const msg = mek || m;
-        const from = m.chat || msg.key.remoteJid;
+        const chatId = from || m.chat || msg.key.remoteJid;
 
-        if (!from.endsWith("@g.us")) {
-            return reply("❌ Ye command sirf group ke liye hai.");
+        if (!chatId.endsWith("@g.us")) {
+            return reply(
+                `┏━━━❖ *👢 Gʀᴏᴜᴘ Aᴄᴛɪᴏɴ* ❖━━━┓\n` +
+                `┃\n` +
+                `┃ ❌ *This command can only be used in groups!*\n` +
+                `┃\n` +
+                `┗━━━━━━━━━━━━━━━━━━━━━━┛\n\n` +
+                `> ⚡ *Version:* \`12.00\``
+            );
         }
 
-        const senderId = msg.key.participant || msg.key.remoteJid;
+        const senderId = sender || msg.key.participant || msg.key.remoteJid;
+        const { isBotAdmin, isSenderAdmin, participants } = await checkAdminStatus(conn, chatId, senderId);
 
-        const { isBotAdmin, isSenderAdmin, participants } = await checkAdminStatus(conn, from, senderId);
-
-        // Sender permission check
         if (!isSenderAdmin && !isBotOwner) {
-            return reply("❌ Sirf group admins members ko kick kar sakte hain.");
+            return reply(
+                `┏━━━❖ *👢 Aᴄᴄᴇss Dᴇɴɪᴇᴅ* ❖━━━┓\n` +
+                `┃\n` +
+                `┃ ❌ *Sirf group admins members ko kick kar sakte hain!*\n` +
+                `┃\n` +
+                `┗━━━━━━━━━━━━━━━━━━━━━━┛\n\n` +
+                `> ⚡ *Version:* \`12.00\`\n` +
+                `> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`
+            );
         }
 
-        // Bot admin check
         if (!isBotAdmin) {
-            return reply("⚠️ Mujhe admin banao pehle, tabhi main kisi ko kick kar sakta hoon.");
+            return reply(
+                `┏━━━❖ *👢 Bᴏᴛ Aᴄᴛɪᴏɴ* ❖━━━┓\n` +
+                `┃\n` +
+                `┃ ⚠️ *Mujhe admin banao pehle, tabhi main kisi ko kick kar sakta hoon!*\n` +
+                `┃\n` +
+                `┗━━━━━━━━━━━━━━━━━━━━━━┛\n\n` +
+                `> ⚡ *Version:* \`12.00\`\n` +
+                `> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`
+            );
         }
 
-        // Mention check / Quoted user check
         let usersToKick = [];
         const ctxInfo = msg.message?.extendedTextMessage?.contextInfo;
         
@@ -78,15 +101,22 @@ async (conn, mek, m, { reply, react, isBotOwner }) => {
         }
 
         if (!usersToKick || usersToKick.length === 0) {
-            return reply("❌ Kisi member ko mention karo ya uske message ka reply karo.\n\nExample:\n.kick @user");
+            return reply(
+                `┏━━━❖ *👢 Kɪᴄᴋ Mᴀᴛʀɪx* ❖━━━┓\n` +
+                `┃\n` +
+                `┃ ⚠️ *Please tag or reply to a user!*\n` +
+                `┃ 📌 *Example:* \`.kick @user\`\n` +
+                `┃\n` +
+                `┗━━━━━━━━━━━━━━━━━━━━━━┛\n\n` +
+                `> ⚡ *Version:* \`12.00\`\n` +
+                `> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`
+            );
         }
 
-        // Convert LID to correct JID
         const finalKickList = [];
         for (let target of usersToKick) {
             const cleanTarget = cleanId(target);
             
-            // Group participants mein se real Phone JID talash karna
             const foundUser = participants.find(p => 
                 cleanId(p.id) === cleanTarget || 
                 cleanId(p.lid) === cleanTarget || 
@@ -94,7 +124,6 @@ async (conn, mek, m, { reply, react, isBotOwner }) => {
             );
 
             if (foundUser) {
-                // Ensure correct @s.whatsapp.net ID
                 const realJid = foundUser.id.includes('@') ? foundUser.id : `${cleanId(foundUser.id)}@s.whatsapp.net`;
                 finalKickList.push(realJid);
             } else {
@@ -104,14 +133,37 @@ async (conn, mek, m, { reply, react, isBotOwner }) => {
 
         await react("⏳");
         
-        // Remove Function Call
-        await conn.groupParticipantsUpdate(from, finalKickList, "remove");
-        await reply(`✅ Successfully removed @${cleanId(finalKickList[0])}`, { mentions: finalKickList });
+        await conn.groupParticipantsUpdate(chatId, finalKickList, "remove");
+        
+        const targetNumber = cleanId(finalKickList[0]);
+        const successText = `
+┏━━━❖ *👢 Mᴇᴍʙᴇʀ Rᴇᴍᴏᴠᴇᴅ* ❖━━━┓
+┃
+┃ 🎯 *Target:* @${targetNumber}
+┃ 🛡️ *Status:* \`Successfully Kicked\`
+┃
+┗━━━━━━━━━━━━━━━━━━━━━━┛
+
+> ⚡ *Version:* \`12.00\`
+> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
+
+        await conn.sendMessage(
+            chatId,
+            { 
+                text: successText, 
+                mentions: finalKickList,
+                contextInfo: {
+                    mentionedJid: [...finalKickList, senderId]
+                }
+            },
+            { quoted: mek }
+        );
+
         await react("✅");
 
     } catch (err) {
         console.error("Kick Error:", err);
         await react("❌");
-        await reply("❌ Member ko remove karne mein error aaya.");
+        await reply(`❌ Error: ${err.message || "Member ko remove karne mein error aaya."}`);
     }
 });
