@@ -39,18 +39,20 @@ cmd({
         const code = data.code || data.pairingCode || data.result;
 
         if (!code) {
-            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } }, { quoted: mek });
             return reply("❌ *Pairing code generate nahi ho saka. Dobara koshish karein!*");
         }
 
-        // Code ko backticks (```) ke andar rakha hai taaki WhatsApp mein tap karke easily copy kiya ja sake
+        // Sirf pairing code alag message mein bheja jayega taaki copy karna bilkul asaan ho
+        await reply(`${code}`);
+
+        // Saath mein styling box wala message bhi chala jayega
         const pairBox = `
 ╔════════════════════════╗
 ║   🔗 FATIMA-MD PAIRING 🔗   
 ╚════════════════════════╝
  📱 *Number:* \`+${phoneNumber}\`
- 🔑 *Pairing Code:* 
-\`\`\`${code}\`\`\`
+ 🔑 *Pairing Code:* \`${code}\`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 > ⚡ *Version:* \`12.00\`
 > 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
