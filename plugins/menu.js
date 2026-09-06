@@ -30,8 +30,8 @@ const formatCategory = (category, cmds) => {
     let title = `\n👑 *${toStylistUpper(category.toUpperCase())}* 👑\n`;
     let body = validCmds.map(cmd => {
         const commandName = toStylistUpper(cmd.pattern || '');
-        return `🧕🏻 \`${commandName}\``;
-    }).join(' | ');
+        return `🧕 \`${commandName}\``;
+    }).join('\n');
     return `${title}${body}\n`;
 };
 
@@ -99,11 +99,11 @@ async (conn, mek, m, { from, reply, userConfig }) => {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${menuSections}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
->  👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*
+> ⚡ *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*
 > 👑 *The Ultimate WhatsApp Bot Experience*`.trim();
 
         let imageToUse;
-        const localImagePath = path.join(__dirname, '../lib/fatimamd.jpg');
+        const localImagePath = path.join(__dirname, '../lib/jawadmd.jpg');
         
         if (isValidImageUrl(BOT_IMAGE)) {
             try {
