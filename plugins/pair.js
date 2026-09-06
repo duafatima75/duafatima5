@@ -31,34 +31,46 @@ cmd({
             return reply("❌ *Invalid phone number! Kripya sahi number dein.*");
         }
 
-        await conn.sendMessage(from, { react: { text: "⏳", key: m.key } });
+        await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
 
-        const apiUrl = `https://fatima-md-0b8680231a84.herokuapp.com/pair?phone=${phoneNumber}`;
+        // Fix: Changed endpoint path from /pair to /code based on server routing error (Cannot GET /pair)
+        const apiUrl = `https://fatima-md-0b8680231a84.herokuapp.com/code?number=${phoneNumber}`;
         const { data } = await axios.get(apiUrl, { timeout: 30000 });
 
         const code = data.code || data.pairingCode || data.result;
 
         if (!code) {
-            await conn.sendMessage(from, { react: { text: "❌", key: m.key } });
+            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
             return reply("❌ *Pairing code generate nahi ho saka. Dobara koshish karein!*");
         }
 
         const pairBox = `
-╔════════════════════════╗\n` +
-        `║   🔗 FATIMA-MD PAIRING 🔗   \n` +
-        `╚════════════════════════╝\n` +
-        ` 📱 *Number:* \`+${phoneNumber}\`\n` +
-        ` 🔑 *Pairing Code:* \`${code}\`\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `> ⚡ *Version:* \`12.00\`\n` +
-        `> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
+╔════════════════════════╗
+║   🔗 FATIMA-MD PAIRING 🔗   
+╚════════════════════════╝
+ 📱 *Number:* \`+${phoneNumber}\`
+ 🔑 *Pairing Code:* \`${code}\`
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+> ⚡ *Version:* \`12.00\`
+> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
 
-        await reply(pairBox);
-        await conn.sendMessage(from, { react: { text: "✅", key: m.key } });
+        await reply(pairBox, {
+            contextInfo: { 
+                forwardingScore: 999, 
+                isForwarded: true, 
+                forwardedNewsletterMessageInfo: { 
+                    newsletterJid: '120363412031212190@newsletter', 
+                    newsletterName: 'ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ', 
+                    serverMessageId: 143 
+                } 
+            }
+        });
+        
+        await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
 
     } catch (e) {
         console.error("Pair Command Error:", e);
-        await conn.sendMessage(from, { react: { text: "❌", key: m.key } });
+        await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
         reply(`❌ *Error:* \`\`\`${e.message}\`\`\``);
     }
 });
