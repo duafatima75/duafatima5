@@ -103,7 +103,7 @@ ${menuSections}
 > 👑 *The Ultimate WhatsApp Bot Experience*`.trim();
 
         let imageToUse;
-        const localImagePath = path.join(__dirname, '../lib/jawadmd.jpg');
+        const localImagePath = path.join(__dirname, '../lib/fatimamd.jpg');
         
         if (isValidImageUrl(BOT_IMAGE)) {
             try {
