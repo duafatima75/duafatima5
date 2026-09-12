@@ -1,4 +1,4 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - HTML VIDEO / DRAMA DOWNLOADER WITH HTML RESPONSE
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - HTML VIDEO / DRAMA DOWNLOADER (CLEAN SUCCESS CARD)
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -53,7 +53,7 @@ async function handleVideoProcess(sock, message, m, { q, reply }, isDrama = fals
 
         const videoTitle = video.title;
         const thumbnail = video.thumbnail || 'https://i.ibb.co/3r13z6h/images.jpg';
-        const displayTitle = videoTitle.length > 40 ? videoTitle.substring(0, 37) + '...' : videoTitle;
+        const displayTitle = videoTitle.length > 35 ? videoTitle.substring(0, 32) + '...' : videoTitle;
 
         const htmlPayload = `<style>
 * { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -201,7 +201,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
                 }, { quoted: msg });
             }
 
-            // HTML Success Response Card when sending media
+            // HTML Success Response Card with proper thumbnail
             const successHtml = `<style>
 * { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
 body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #eee; }
@@ -211,7 +211,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
 .succ-sub { font-size: 10px; letter-spacing: 2px; color: #00ff87; font-weight: 700; text-transform: uppercase; }
 .succ-title-top { font-size: 19px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 255, 135, 0.6); letter-spacing: 1px; }
 .succ-body { padding: 16px; display: flex; gap: 14px; align-items: center; }
-.succ-thumb { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(0, 255, 135, 0.4); box-shadow: 0 0 12px rgba(0,255,135,0.3); flex-shrink: 0; }
+.succ-thumb { width: 110px; height: 110px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(0, 255, 135, 0.4); box-shadow: 0 0 12px rgba(0,255,135,0.3); flex-shrink: 0; }
 .succ-info { flex: 1; overflow: hidden; }
 .song-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 6px rgba(255,255,255,0.3); }
 .song-detail { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-bottom: 4px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
