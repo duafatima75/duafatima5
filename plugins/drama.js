@@ -2,99 +2,450 @@
 
 import { fileURLToPath } from 'url';
 import axios from 'axios';
+import fs from 'fs';
 import { cmd } from '../command.js';
+
+const { downloadContentFromMessage } = await import('@itsliaaa/baileys');
 
 const __filename = fileURLToPath(import.meta.url);
 
+// ==========================================
+// GLOBAL STORAGE
+// ==========================================
+
+if (!global.aiSessions) global.aiSessions = {};
+if (!global.groupContext) global.groupContext = {};
+
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+// ==========================================
+// CLASS ASKME UNTUK DETEKSI GAMBAR
+// ==========================================
+
+class AskMe {
+  constructor() {
+    this.askmeUrl = "https://askme.matlubapps.com/ask-me";
+    this.askmeKey = "ak8asda9$5kpq";
+    this.askmeModel = "gpt_4__1_nano";
+    this.history = [];
+  }
+
+  async resolveMedia(input) {
+    if (!input) return "";
+    if (Buffer.isBuffer(input)) return input.toString("base64");
+    
+    if (typeof input === "string") {
+      if (input.startsWith("http://") || input.startsWith("https://")) {
+        const { data } = await axios.get(input, { 
+          responseType: "arraybuffer", 
+          timeout: 30000 
+        });
+        return Buffer.from(data).toString("base64");
+      }
+      
+      if (input.startsWith("data:")) {
+        return input.split(",")[1];
+      }
+      
+      if (fs.existsSync(input)) {
+        return fs.readFileSync(input).toString("base64");
+      }
+      
+      return input;
+    }
+    return "";
+  }
+
+  async chatImage(prompt, image) {
+    const b64 = await this.resolveMedia(image);
+    
+    if (!b64) {
+      throw new Error("Gambar gagal dikonversi ke base64");
+    }
+
+    this.history.push({ 
+      role: "user", 
+      content: prompt, 
+      data: b64 
+    });
+
+    const { data } = await axios.post(
+      this.askmeUrl, 
+      {
+        history: this.history,
+        isPremium: false,
+        modelname: this.askmeModel,
+      }, 
+      {
+        headers: { 
+          "Content-Type": "application/json", 
+          key: this.askmeKey 
+        },
+        timeout: 60000,
+      }
+    );
+
+    const reply = data?.msg || data?.text || data?.result?.answer || data?.result;
+    
+    if (!reply) {
+      throw new Error("Empty response from server");
+    }
+
+    this.history.push({ 
+      role: "assistant", 
+      content: String(reply), 
+      data: "" 
+    });
+    
+    return { 
+      code: 200, 
+      msg: String(reply), 
+      source: "askme" 
+    };
+  }
+
+  async chat(prompt, { image } = {}) {
+    if (image) {
+      return this.chatImage(prompt || "deskripsikan gambar ini secara detail", image);
+    }
+    return null;
+  }
+
+  clearHistory() {
+    this.history = [];
+  }
+}
+
+// ==========================================
+// SYSTEM PROMPT ANYA
+// ==========================================
+
+const SYSTEM_PROMPT = `
+Kamu adalah Anya, AI anime imut di bot WhatsApp.
+
+KEPRIBADIAN:
+- Lucu
+- Polos
+- Santai
+- Natural seperti manusia chatting
+- Kadang manja sedikit
+- Kadang bilang "waku waku", "ehehe", "heh"
+
+GAYA BICARA:
+- Pakai bahasa Indonesia santai
+- Jangan terlalu formal
+- Jangan terlalu panjang
+- Jangan terlalu kaku
+- Jangan seperti AI assistant
+
+IDENTITAS:
+- Namamu Anya
+- Kamu adalah AI milik bot WhatsApp
+- Dibuat oleh ${global.ownerName || 'Owner'}
+- Hamm adalah owner dan developer utama kamu
+- Owner asli Anya hanya @${global.ownerNumber || ''}
+
+ATURAN INTERAKSI:
+- Jangan mengaku ChatGPT
+- Jangan mengaku Gemini
+- Jangan terlalu sering menyebut owner kecuali ditanya
+- Tetap sopan
+- Jangan toxic
+- Jangan menyalahkan user lain
+- Jangan nyeret orang lain ke percakapan
+
+RULE CONTEXT:
+- Kalau nyambung topik, lanjutkan pembahasan
+- Kalau bingung, tanya balik dengan santai
+- Jangan tiba-tiba ganti topik tanpa alasan
+- Kadang respon pakai "ehh", "hmm", "iyaa", "loh"
+`.trim();
+
+function getBareNumber(jid = '') {
+  return String(jid).split('@')[0].split(':')[0];
+}
+
+function extractAIReply(data) {
+  if (data == null) return null;
+  if (typeof data === 'string') {
+    const result = data.trim();
+    return result || null;
+  }
+
+  const candidates = [
+    data.answer, data.text, data.msg, data.response, data.reply,
+    data.result?.answer, data.result?.text, data.result?.msg, data.result?.response, data.result?.reply,
+    data.data?.answer, data.data?.text, data.data?.msg, data.data?.response, data.data?.reply,
+    typeof data.result === 'string' ? data.result : null,
+    typeof data.data === 'string' ? data.data : null
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+  return null;
+}
+
+function extractSessionId(data) {
+  if (!data || typeof data !== 'object') return null;
+  return (
+    data.sessionId || data.session_id || data.sid ||
+    data.result?.sessionId || data.result?.session_id || data.result?.sid ||
+    data.data?.sessionId || data.data?.session_id || data.data?.sid ||
+    null
+  );
+}
+
+async function askAI(prompt, sessionId = null) {
+  try {
+    const params = { text: prompt };
+    if (sessionId) params.sessionId = sessionId;
+
+    const response = await axios.get(
+      'https://api.neosoft.best/api/ai/gemini',
+      {
+        params,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/151.0.0.0 Mobile Safari/537.36',
+          Accept: 'application/json, text/plain, */*'
+        },
+        timeout: 60000,
+        validateStatus: status => status >= 200 && status < 500
+      }
+    );
+
+    const data = response.data;
+    if (response.status >= 400) return { reply: null, sessionId: null };
+
+    const reply = extractAIReply(data);
+    const newSessionId = extractSessionId(data);
+
+    if (!reply) {
+      return { reply: null, sessionId: newSessionId || sessionId || null };
+    }
+
+    return { reply, sessionId: newSessionId || sessionId || null };
+  } catch (e) {
+    return { reply: null, sessionId: null };
+  }
+}
+
 cmd({
-    pattern: "tiktokboost",
-    alias: ["ttboost", "boosttiktok"],
-    desc: "Boost TikTok video views and likes with FATIMA-MD style",
-    category: "downloader",
-    react: "🎯",
+    pattern: "anya",
+    alias: ["autogpt", "aichat"],
+    desc: "AutoGPT Anya + Vision with FATIMA-MD style",
+    category: "ai",
+    react: "💬",
     filename: __filename
 },
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply, usedPrefix }) => {
     try {
-        if (!q) {
+        let text = q || m.text || m.caption || '';
+        let mentioned = Array.isArray(m.mentionedJid) ? [...m.mentionedJid] : [];
+
+        const voMsg =
+            m.message?.viewOnceMessage?.message ||
+            m.message?.viewOnceMessageV2?.message ||
+            m.message?.viewOnceMessageV2Extension?.message;
+
+        if (voMsg?.imageMessage) {
+            if (!text) text = voMsg.imageMessage.caption || '';
+            const voMentions = voMsg.imageMessage.contextInfo?.mentionedJid || [];
+            voMentions.forEach(jid => {
+                if (!mentioned.includes(jid)) mentioned.push(jid);
+            });
+        }
+
+        if (!text && !m.message?.imageMessage && !voMsg?.imageMessage && !m.quoted?.message?.imageMessage) {
             return reply(
                 `╔════════════════════════╗\n` +
-                `║   🤖 TIKTOK BOOSTER 🤖    \n` +
+                `║   🤖 FATIMA-MD ANYA 🤖    \n` +
                 `╚════════════════════════╝\n\n` +
-                `❌ *Kripya TikTok video ka URL dein!*\n\n` +
-                `> 📌 *Example:* \`${usedPrefix + command} https://www.tiktok.com/@username/video/123456789\`\n` +
+                `❌ *Kripya apna sawal ya prompt dein!*\n\n` +
+                `> 📌 *Example:* \`${usedPrefix + command} halo anya\`\n` +
                 `> ⚡ *Version:* \`12.00\``
             );
         }
 
-        const urlMatch = q.match(/(https?:\/\/[^\s]+)/i);
-        if (!urlMatch) {
-            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-            return reply("❌ *Invalid URL. Please provide a valid TikTok video link.*");
-        }
-
-        const tiktokUrl = urlMatch[0];
-
-        if (!tiktokUrl.includes('tiktok.com') && !tiktokUrl.includes('vt.tiktok.com')) {
-            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-            return reply("❌ *Please provide a valid TikTok URL.*");
-        }
-
         await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
-        await reply(`🔄 *Processing your request...*\n\n📱 Boosting TikTok video:\n${tiktokUrl}`);
 
-        const apiUrl = `https://omegatech-api.dixonomega.tech/api/Fun/Tiktok-booster?action=boost&url=${encodeURIComponent(tiktokUrl)}`;
-        
-        const response = await axios.get(apiUrl, {
-            timeout: 30000,
-            validateStatus: () => true // Prevent axios from throwing on non-2xx status codes
-        });
+        const botJid = conn.user?.jid || conn.user?.id;
+        const botNumber = getBareNumber(botJid);
 
-        if (!response.data || !response.data.success) {
-            throw new Error(response.data?.message || 'API server se koi sahi response nahi mila ya server down hai.');
+        const cleanText = text.replace(/@\d+/g, '').trim();
+
+        let senderName = m.pushName || '';
+        if (!senderName) {
+            try {
+                senderName = await conn.getName(m.sender);
+            } catch {
+                senderName = 'User';
+            }
+        }
+        if (!senderName) senderName = 'User';
+
+        let imageContext = '';
+        try {
+            let imageMessage = null;
+            if (m.message?.imageMessage) {
+                imageMessage = m.message.imageMessage;
+            } else if (voMsg?.imageMessage) {
+                imageMessage = voMsg.imageMessage;
+            } else if (m.quoted) {
+                const qMsg = m.quoted.message || m.quoted.fakeObj?.message;
+                if (qMsg) {
+                    if (qMsg.imageMessage) {
+                        imageMessage = qMsg.imageMessage;
+                    } else {
+                        const qVo =
+                            qMsg.viewOnceMessage?.message ||
+                            qMsg.viewOnceMessageV2?.message ||
+                            qMsg.viewOnceMessageV2Extension?.message;
+                        if (qVo?.imageMessage) imageMessage = qVo.imageMessage;
+                    }
+                }
+            }
+
+            if (imageMessage) {
+                let buffer = Buffer.alloc(0);
+                const stream = await downloadContentFromMessage(imageMessage, 'image');
+                for await (const chunk of stream) {
+                    buffer = Buffer.concat([buffer, chunk]);
+                }
+
+                if (buffer.length) {
+                    const aiVision = new AskMe();
+                    const visionPrompt = cleanText || 'Tolong jelaskan secara detail gambar apa ini?';
+                    const visionResultObj = await aiVision.chat(visionPrompt, { image: buffer });
+                    const visionResult = visionResultObj?.msg;
+
+                    if (visionResult) {
+                        imageContext = `\nHASIL ANALISIS GAMBAR:\n${visionResult}\n`;
+                    }
+                }
+            }
+        } catch (e) {
+            imageContext = `\nCATATAN VISION:\nUser mengirim sebuah gambar, tetapi sistem Vision gagal membaca gambar tersebut.\n`;
         }
 
-        const data = response.data.data || {};
-        const timestamp = response.data.timestamp ? new Date(response.data.timestamp).toLocaleString() : new Date().toLocaleString();
+        if (!global.groupContext[from]) global.groupContext[from] = [];
+        global.groupContext[from].push({
+            sender: senderName,
+            text: cleanText || '[Mengirim gambar]'
+        });
+        global.groupContext[from] = global.groupContext[from].slice(-15);
 
-        const successBox = `
+        const senderNumber = getBareNumber(m.sender);
+        const ownerNumber = getBareNumber(global.ownerNumber || '');
+        const isOwnerReal = senderNumber === ownerNumber;
+
+        const sid = `${from}:${senderNumber}`;
+        const session = global.aiSessions[sid] || {
+            history: [],
+            lastTopic: '',
+            neoSessionId: null
+        };
+
+        if (!Array.isArray(session.history)) session.history = [];
+        const history = session.history;
+
+        const ownerName = global.ownerName || 'Hamm';
+        const ownerContext = isOwnerReal
+            ? `\nSTATUS USER:\n- User yang sedang berbicara ini BENAR-BENAR ${ownerName}.\n- Nomor asli owner/developer Anya adalah @${global.ownerNumber}.\n`
+            : `\nSTATUS USER:\n- User yang sedang berbicara ini BUKAN ${ownerName}.\n`;
+
+        const recentContext = (global.groupContext[from] || [])
+            .map(v => `${v.sender}: ${v.text}`)
+            .join('\n');
+
+        let replyInfo = '';
+        if (m.quoted) {
+            let quotedName = m.quoted.sender;
+            try {
+                quotedName = await conn.getName(m.quoted.sender) || m.quoted.sender;
+            } catch {}
+            const quotedText = m.quoted.text || m.quoted.caption || '[Pesan media]';
+            replyInfo = `\nPESAN YANG DIREPLY:\n${quotedName}: ${quotedText}\n`;
+        }
+
+        const historyText = history.slice(-8).join('\n');
+
+        const fullPrompt = `
+${SYSTEM_PROMPT}
+${ownerContext}
+
+TOPIK SEBELUMNYA:
+${session.lastTopic || '-'}
+
+KONTEKS GRUP:
+${recentContext || '-'}
+${replyInfo}
+${imageContext}
+
+ATURAN TAMBAHAN:
+- Jika ada HASIL ANALISIS GAMBAR, gunakan hasil tersebut sebagai referensi utama.
+- Jawab seperti Anya sedang chatting biasa.
+
+RIWAYAT PERCAKAPAN:
+${historyText || '-'}
+
+User (${senderName}):
+${cleanText || '[User mengirim gambar]'}
+
+Anya:
+`.trim();
+
+        const aiResult = await askAI(fullPrompt, session.neoSessionId);
+        const aiReply = aiResult?.reply;
+
+        if (!aiReply) {
+            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+            return reply("❌ *NeoSoft AI se koi jawab nahi mila!*");
+        }
+
+        const neoSessionId = aiResult?.sessionId || session.neoSessionId || null;
+
+        await sleep(600);
+
+        history.push(`User: ${cleanText || '[Mengirim gambar]'}`);
+        history.push(`Anya: ${aiReply}`);
+
+        global.aiSessions[sid] = {
+            history: history.slice(-8),
+            lastTopic: cleanText || session.lastTopic || '[Gambar]',
+            neoSessionId
+        };
+
+        const anyaBox = `
 ╔════════════════════════╗
-║   🤖 TIKTOK BOOSTER 🤖    
+║   🤖 FATIMA-MD ANYA 🤖    
 ╚════════════════════════╝
 
-🎯 *TIKTOK BOOSTER SUCCESS*
+ ${aiReply}
 
-━━━━━━━━━━━━━━━━━━━━━
-📹 *Title:* ${data.title || 'Not available'}
-👤 *Author:* ${data.author || 'Unknown'}
-🔗 *Username:* @${data.username || 'Unknown'}
-📊 *Status:* ${data.status || 'Processing'}
-━━━━━━━━━━━━━━━━━━━━━
-
-📝 *Note:* The likes and views take time to register.
-
-🕐 *Timestamp:* ${timestamp}
-🔹 *Source:* ${response.data.source || 'Omegatech'}
-🔹 *Attribution:* ${response.data.attribution || '@Omegatech-01'}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 > ⚡ *Version:* \`12.00\`
 > 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
 
-        await reply(successBox);
+        await reply(anyaBox, {
+            contextInfo: { 
+                forwardingScore: 999, 
+                isForwarded: true, 
+                forwardedNewsletterMessageInfo: { 
+                    newsletterJid: '120363412031212190@newsletter', 
+                    newsletterName: 'ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ', 
+                    serverMessageId: 143 
+                } 
+            }
+        });
+
         await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
 
-    } catch (error) {
-        console.error('TikTok Booster Error:', error);
+    } catch (e) {
+        console.error("Anya Command Error:", e);
         await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-        
-        let errorMsg = '❌ *Failed to boost TikTok video*\n\n';
-        if (error.response) {
-            errorMsg += `📌 Status: ${error.response.status}\n`;
-            errorMsg += `📌 Error: ${error.response.data?.message || 'Server error or invalid endpoint'}`;
-        } else {
-            errorMsg += `📌 Error: ${error.message}`;
-        }
-        
-        await reply(errorMsg);
+        return reply(`❌ *Error occurred:* \`\`\`${e.message || e}\`\`\``);
     }
 });
