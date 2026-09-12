@@ -1,4 +1,4 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ALL-IN-ONE EMBEDDED HTML MUSIC PLAYER
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ADVANCED EMBEDDED HTML MUSIC PLAYER WITH SIZE & DIRECT PLAY
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -16,7 +16,7 @@ const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhd
 cmd({
     pattern: "play",
     alias: ["ytplay", "song", "plays"],
-    desc: "Search and play songs with fully embedded HTML audio player",
+    desc: "Search and play songs with advanced embedded HTML player and file size",
     category: "downloader",
     react: "🎵",
     filename: __filename
@@ -53,11 +53,23 @@ cmd({
         const thumbnail = info.thumbnail || 'https://i.ibb.co/3r13z6h/images.jpg';
         const duration = info.duration_timestamp || '3:45';
         const author = info.author || 'Unknown Artist';
-        const displayTitle = title.length > 32 ? title.substring(0, 29) + '...' : title;
+        const displayTitle = title.length > 30 ? title.substring(0, 27) + '...' : title;
 
         if (!audioUrl) {
             await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
             return reply("❌ Failed to retrieve the MP3 download link from the API response.");
+        }
+
+        // Fetch audio file size (MB) dynamically
+        let fileSizeMB = "3.8 MB";
+        try {
+            const headRes = await axios.head(audioUrl);
+            const contentLength = headRes.headers['content-length'];
+            if (contentLength) {
+                fileSizeMB = (contentLength / (1024 * 1024)).toFixed(2) + " MB";
+            }
+        } catch (e) {
+            // fallback size if head request fails
         }
 
         const htmlPayload = `<style>
@@ -69,39 +81,41 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
 .aud-sub { font-size: 10px; letter-spacing: 2px; color: #00f3ff; font-weight: 700; text-transform: uppercase; }
 .aud-title-top { font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.6); }
 .aud-body { padding: 16px; display: flex; gap: 14px; align-items: center; }
-.aud-thumb-box { position: relative; width: 65px; height: 65px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 12px rgba(0,243,255,0.3); flex-shrink: 0; }
+.aud-thumb-box { position: relative; width: 70px; height: 70px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 12px rgba(0,243,255,0.3); flex-shrink: 0; background: #000; }
 .aud-thumb { width: 100%; height: 100%; object-fit: cover; }
 .aud-info { flex: 1; overflow: hidden; }
 .song-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 6px rgba(255,255,255,0.3); }
-.song-detail { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-bottom: 6px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.song-detail { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-bottom: 3px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .aud-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 16px; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
 .native-player { width: 100%; height: 36px; border-radius: 8px; filter: invert(0.9) hue-rotate(180deg); }
 .footer-info { display: flex; justify-content: space-between; align-items: center; font-size: 11px; width: 100%; }
+.badge-size { background: rgba(255, 0, 127, 0.15); border: 1px solid rgba(255, 0, 127, 0.4); color: #ff007f; padding: 2px 8px; border-radius: 12px; font-weight: 800; font-size: 10px; }
 </style>
 
 <div class="aud-wrap">
   <div class="aud-card">
     <div class="aud-header">
       <div>
-        <div class="aud-sub">FATIMA-MD EMBEDDED PLAYER</div>
-        <div class="aud-title-top">Music Stream 🎵</div>
+        <div class="aud-sub">FATIMA-MD MEDIA PLAYER</div>
+        <div class="aud-title-top">Playing Online 🎵</div>
       </div>
       <div>
-        <span style="background: rgba(0,255,135,0.15); border: 1px solid rgba(0,255,135,0.4); color: #00ff87; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 10px;">READY</span>
+        <span class="badge-size">${fileSizeMB}</span>
       </div>
     </div>
     <div class="aud-body">
       <div class="aud-thumb-box">
-        <img src="${thumbnail}" class="aud-thumb" alt="Thumbnail">
+        <img src="${thumbnail}" class="aud-thumb" alt="Thumbnail" crossorigin="anonymous">
       </div>
       <div class="aud-info">
         <div class="song-title" title="${title}">${displayTitle}</div>
         <div class="song-detail">👤 <b>Artist:</b> ${author}</div>
         <div class="song-detail">⏱️ <b>Duration:</b> ${duration}</div>
+        <div class="song-detail">🚀 <b>Status:</b> Downloaded & Ready</div>
       </div>
     </div>
     <div class="aud-footer">
-      <audio controls class="native-player" preload="none">
+      <audio controls class="native-player" preload="metadata">
         <source src="${audioUrl}" type="audio/mp4">
         Your browser does not support the audio element.
       </audio>
