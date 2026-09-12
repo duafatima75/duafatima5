@@ -6,209 +6,178 @@ const __filename = fileURLToPath(import.meta.url);
 const htmlPayload = `<style>
 * { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; box-sizing: border-box; }
 body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #eee; touch-action: manipulation; cursor: pointer; }
-.yl-wrap { width: 100%; max-width: 640px; margin: auto; padding: 12px; }
-.yl-card { background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(234, 179, 8, 0.35); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(234, 179, 8, 0.18), 0 0 15px rgba(59, 130, 246, 0.2); }
-.yl-header { padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(234,179,8,0.08), rgba(59,130,246,0.08)); }
-.yl-sub { font-size: 10px; letter-spacing: 2px; color: #eab308; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
-.yl-title { font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(234, 179, 8, 0.6); letter-spacing: 0.5px; }
-.yl-controls { display: flex; gap: 8px; align-items: center; }
-.yl-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: #fff; cursor: pointer; transition: all 0.2s; }
-.yl-btn:active { transform: scale(0.92); }
-.yl-btn.active { background: #eab308; color: #000; border-color: #eab308; }
-.yl-body { padding: 12px; position: relative; display: flex; flex-direction: column; align-items: center; }
-.board-container { position: relative; width: 320px; height: 320px; background: #1e293b; border: 3px solid #334155; border-radius: 8px; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); }
-.cell { border: 1px solid rgba(255,255,255,0.03); display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: bold; position: relative; }
-.home-red { grid-column: 1 / 7; grid-row: 1 / 7; background: rgba(239, 68, 68, 0.25); border: 2px solid #ef4444; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); padding: 12px; gap: 8px; }
-.home-green { grid-column: 10 / 16; grid-row: 1 / 7; background: rgba(34, 197, 94, 0.25); border: 2px solid #22c55e; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); padding: 12px; gap: 8px; }
-.home-yellow { grid-column: 1 / 7; grid-row: 10 / 16; background: rgba(234, 179, 8, 0.25); border: 2px solid #eab308; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); padding: 12px; gap: 8px; }
-.home-blue { grid-column: 10 / 16; grid-row: 10 / 16; background: rgba(59, 130, 246, 0.25); border: 2px solid #3b82f6; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); padding: 12px; gap: 8px; }
-
-.base-slot { background: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; margin: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
-
-.center-zone { grid-column: 7 / 10; grid-row: 7 / 10; background: #0f172a; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #eab308; text-align: center; border: 1px solid #475569; }
-
-/* Pawns */
-.pawn { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.15s; z-index: 10; }
-.pawn:hover { transform: scale(1.2); }
-.pawn.red { background: #ef4444; }
-.pawn.green { background: #22c55e; }
-.pawn.yellow { background: #eab308; }
-.pawn.blue { background: #3b82f6; }
-
-.yl-hud { width: 100%; max-width: 320px; display: flex; justify-content: space-between; align-items: center; margin-top: 12px; background: rgba(255,255,255,0.05); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-.turn-indicator { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-.turn-dot { width: 12px; height: 12px; border-radius: 50%; }
-.dice-box { background: #fff; color: #000; width: 42px; height: 42px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 900; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s; }
-.dice-box:active { transform: scale(0.9); }
+.mp-wrap { width: 100%; max-width: 640px; margin: auto; padding: 12px; }
+.mp-card { background: rgba(15, 18, 28, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(239, 68, 68, 0.15), 0 0 15px rgba(59, 130, 246, 0.2); }
+.mp-header { padding: 14px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(239,68,68,0.06), rgba(59,130,246,0.06)); }
+.mp-sub { font-size: 10px; letter-spacing: 2px; color: #ef4444; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
+.mp-title { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(239, 68, 68, 0.6); letter-spacing: 1px; }
+.mp-controls { display: flex; gap: 8px; }
+.mp-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; color: #fff; }
+.mp-btn:active { transform: scale(0.9); }
+.mp-body { padding: 16px; display: flex; flex-direction: column; align-items: center; position: relative; }
+.player-screen { width: 100%; background: #080b12; border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+.vinyl-disc { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, #1e293b 25%, #0f172a 26%, #020617 70%); border: 4px solid #334155; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(0,0,0,0.8); margin-bottom: 16px; transition: transform 0.3s linear; position: relative; }
+.vinyl-disc.spin { animation: spin 4s linear infinite; }
+.vinyl-center { width: 45px; height: 45px; border-radius: 50%; background: #ef4444; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.track-info { text-align: center; margin-bottom: 14px; width: 100%; }
+.track-name { font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-artist { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; }
+.progress-bar-wrap { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 14px; overflow: hidden; cursor: pointer; position: relative; }
+.progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ef4444, #3b82f6); border-radius: 3px; transition: width 0.1s linear; }
+.player-actions { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; }
+.action-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; transition: all 0.2s; }
+.action-btn.play-main { width: 56px; height: 56px; background: #ef4444; border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+.action-btn:active { transform: scale(0.92); }
 .svg-icon { display: inline-block; vertical-align: middle; }
 </style>
 
-<div class="yl-wrap">
-  <div class="yl-card">
-    <div class="yl-header">
+<div class="mp-wrap">
+  <div class="mp-card">
+    <div class="mp-header">
       <div>
-        <div class="yl-sub">
-          <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="8" cy="8" r="1.5" fill="#eab308"></circle><circle cx="16" cy="8" r="1.5" fill="#eab308"></circle><circle cx="8" cy="16" r="1.5" fill="#eab308"></circle><circle cx="16" cy="16" r="1.5" fill="#eab308"></circle></svg>
-          FATIMA-MD LUDO
+        <div class="mp-sub">
+          <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+          FATIMA-MD MEDIA
         </div>
-        <div class="yl-title">Mini Ludo Club</div>
+        <div class="mp-title">Neon MP3 Hub</div>
       </div>
-      <div class="yl-controls">
-        <button id="mode2p" class="yl-btn active" onclick="setPlayers(2)">2P</button>
-        <button id="mode4p" class="yl-btn" onclick="setPlayers(4)">4P</button>
+      <div class="mp-controls">
+        <button class="mp-btn" title="Playlist" onclick="togglePlaylist()">
+          <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        </button>
       </div>
     </div>
-    <div class="yl-body">
-      <div class="board-container" id="board">
-        <!-- Homes -->
-        <div class="home-red">
-          <div class="base-slot"><div class="pawn red" id="r0" onclick="movePawn('red', 0)"></div></div>
-          <div class="base-slot"><div class="pawn red" id="r1" onclick="movePawn('red', 1)"></div></div>
-          <div class="base-slot"><div class="pawn red" id="r2" onclick="movePawn('red', 2)"></div></div>
-          <div class="base-slot"><div class="pawn red" id="r3" onclick="movePawn('red', 3)"></div></div>
+    <div class="mp-body">
+      <div class="player-screen">
+        <div id="vinyl" class="vinyl-disc">
+          <div class="vinyl-center">MP3</div>
         </div>
-        <div class="home-green" id="homeGreen">
-          <div class="base-slot"><div class="pawn green" id="g0" onclick="movePawn('green', 0)"></div></div>
-          <div class="base-slot"><div class="pawn green" id="g1" onclick="movePawn('green', 1)"></div></div>
-          <div class="base-slot"><div class="pawn green" id="g2" onclick="movePawn('green', 2)"></div></div>
-          <div class="base-slot"><div class="pawn green" id="g3" onclick="movePawn('green', 3)"></div></div>
+        <div class="track-info">
+          <div id="trackName" class="track-name">Cybernetic Dreams</div>
+          <div id="trackArtist" class="track-artist">FATIMA-MD Synthwave</div>
         </div>
-        <div class="home-yellow" id="homeYellow">
-          <div class="base-slot"><div class="pawn yellow" id="y0" onclick="movePawn('yellow', 0)"></div></div>
-          <div class="base-slot"><div class="pawn yellow" id="y1" onclick="movePawn('yellow', 1)"></div></div>
-          <div class="base-slot"><div class="pawn yellow" id="y2" onclick="movePawn('yellow', 2)"></div></div>
-          <div class="base-slot"><div class="pawn yellow" id="y3" onclick="movePawn('yellow', 3)"></div></div>
+        <div class="progress-bar-wrap" onclick="seekTrack(event)">
+          <div id="progressBar" class="progress-bar-fill"></div>
         </div>
-        <div class="home-blue" id="homeBlue">
-          <div class="base-slot"><div class="pawn blue" id="b0" onclick="movePawn('blue', 0)"></div></div>
-          <div class="base-slot"><div class="pawn blue" id="b1" onclick="movePawn('blue', 1)"></div></div>
-          <div class="base-slot"><div class="pawn blue" id="b2" onclick="movePawn('blue', 2)"></div></div>
-          <div class="base-slot"><div class="pawn blue" id="b3" onclick="movePawn('blue', 3)"></div></div>
+        <div class="player-actions">
+          <button class="action-btn" onclick="prevTrack()">
+            <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="4" x2="5" y2="20"></line></svg>
+          </button>
+          <button class="action-btn play-main" onclick="togglePlay()" id="playBtn">
+            <svg id="playIcon" class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <svg id="pauseIcon" class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:none"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+          </button>
+          <button class="action-btn" onclick="nextTrack()">
+            <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="4" x2="19" y2="20"></line></svg>
+          </button>
         </div>
-        <div class="center-zone">LUDO</div>
       </div>
-
-      <div class="yl-hud">
-        <div class="turn-indicator">
-          <div id="turnDot" class="turn-dot" style="background:#ef4444;"></div>
-          <span id="turnText">Red's Turn</span>
-        </div>
-        <div id="dice" class="dice-box" onclick="rollDice()">🎲</div>
-      </div>
-      <div style="font-size: 10px; color: rgba(234, 179, 8, 0.5); text-align: center; margin-top: 8px; font-weight: 600; letter-spacing: 1px;">WM: FATIMA-MD</div>
+      <div style="font-size: 10px; color: rgba(239, 68, 68, 0.5); text-align: center; margin-top: 10px; font-weight: 600; letter-spacing: 1px;">WM: FATIMA-MD</div>
     </div>
   </div>
 </div>
 
 <script>
-let totalPlayers = 2;
-let currentTurn = 0; // 0: Red, 1: Green, 2: Yellow, 3: Blue
-let diceValue = 0;
-let hasRolled = false;
+let audioCtx = null;
+let isPlaying = false;
+let currentTrackIdx = 0;
+let progress = 0;
+let animInterval = null;
 
-const colors = ['red', 'green', 'yellow', 'blue'];
-const colorNames = { red: 'Red', green: 'Green', yellow: 'Yellow', blue: 'Blue' };
-const colorHex = { red: '#ef4444', green: '#22c55e', yellow: '#eab308', blue: '#3b82f6' };
+const playlist = [
+  { title: "Cybernetic Dreams", artist: "FATIMA-MD Synthwave", freq: 440 },
+  { title: "Neon Horizon Beats", artist: "Retrowave Vibes", freq: 523 },
+  { title: "Quantum Cyber Pulse", artist: "Electro Ambient", freq: 659 }
+];
 
-// Simplified track mapping for mini touch board simulation
-// Each player has 4 pawns with state: -1 (home base), 0-51 (track), 52 (goal)
-let positions = {
-  red: [-1, -1, -1, -1],
-  green: [-1, -1, -1, -1],
-  yellow: [-1, -1, -1, -1],
-  blue: [-1, -1, -1, -1]
-};
-
-function setPlayers(num) {
-  totalPlayers = num;
-  document.getElementById('mode2p').className = num === 2 ? 'yl-btn active' : 'yl-btn';
-  document.getElementById('mode4p').className = num === 4 ? 'yl-btn active' : 'yl-btn';
-  
-  // Hide/Show 4P elements if 2P mode
-  document.getElementById('homeGreen').style.opacity = num === 2 ? '0.3' : '1';
-  document.getElementById('homeYellow').style.opacity = num === 2 ? '0.3' : '1';
-  resetGame();
+function initAudio() {
+  if (!audioCtx) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) audioCtx = new AudioCtx();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function resetGame() {
-  currentTurn = 0;
-  diceValue = 0;
-  hasRolled = false;
-  positions = {
-    red: [-1, -1, -1, -1],
-    green: [-1, -1, -1, -1],
-    yellow: [-1, -1, -1, -1],
-    blue: [-1, -1, -1, -1]
-  };
-  updateUI();
-}
+function togglePlay() {
+  initAudio();
+  isPlaying = !isPlaying;
+  let vinyl = document.getElementById('vinyl');
+  let playIcon = document.getElementById('playIcon');
+  let pauseIcon = document.getElementById('pauseIcon');
 
-function rollDice() {
-  if (hasRolled) return;
-  diceValue = Math.floor(Math.random() * 6) + 1;
-  document.getElementById('dice').textContent = diceValue;
-  hasRolled = true;
-
-  // Check if player has any movable pawn
-  let activeColor = colors[currentTurn];
-  let movable = positions[activeColor].some(pos => pos !== 52 && (pos !== -1 || diceValue === 6));
-  
-  if (!movable) {
-    setTimeout(nextTurn, 1000);
+  if (isPlaying) {
+    vinyl.className = 'vinyl-disc spin';
+    playIcon.style.display = 'none';
+    pauseIcon.style.display = 'inline-block';
+    startSynthLoop();
+  } else {
+    vinyl.className = 'vinyl-disc';
+    playIcon.style.display = 'inline-block';
+    pauseIcon.style.display = 'none';
+    clearInterval(animInterval);
   }
 }
 
-function movePawn(colorKey, idx) {
-  let colorIndex = colors.indexOf(colorKey);
-  if (colorIndex !== currentTurn || !hasRolled) return;
-
-  let pos = positions[colorKey][idx];
-
-  if (pos === -1) {
-    if (diceValue === 6) {
-      positions[colorKey][idx] = 0; // Start position
-      hasRolled = false;
-      document.getElementById('dice').textContent = '🎲';
-      nextTurn();
+function startSynthLoop() {
+  clearInterval(animInterval);
+  animInterval = setInterval(() => {
+    progress += 0.5;
+    if (progress >= 100) {
+      progress = 0;
+      nextTrack();
+      return;
     }
-  } else if (pos < 52) {
-    pos += diceValue;
-    if (pos > 52) pos = 52; // Exact finish or cap
-    positions[colorKey][idx] = pos;
-    hasRolled = false;
-    document.getElementById('dice').textContent = '🎲';
-    nextTurn();
-  }
-  updateUI();
+    document.getElementById('progressBar').style.width = progress + '%';
+  }, 200);
+
+  // Play synthetic tone using Web Audio API to simulate active playback
+  try {
+    if (audioCtx) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(playlist[currentTrackIdx].freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.5);
+    }
+  } catch(e) {}
 }
 
-function nextTurn() {
-  do {
-    currentTurn = (currentTurn + 1) % totalPlayers;
-  } while (totalPlayers === 2 && (currentTurn === 1 || currentTurn === 2)); 
-  // In 2P mode, Red (0) plays against Blue (3) or Green (1)
-  if (totalPlayers === 2 && currentTurn === 1) currentTurn = 3; 
-
-  let activeColor = colors[currentTurn];
-  document.getElementById('turnText').textContent = colorNames[activeColor] + "'s Turn";
-  document.getElementById('turnDot').style.background = colorHex[activeColor];
+function nextTrack() {
+  currentTrackIdx = (currentTrackIdx + 1) % playlist.length;
+  progress = 0;
+  updateTrackInfo();
+  if (isPlaying) startSynthLoop();
 }
 
-function updateUI() {
-  colors.forEach(col => {
-    positions[col].forEach((pos, idx) => {
-      let el = document.getElementById(col[0] + idx);
-      if (pos === -1) {
-        // Reset to base slot parent display if needed
-        el.style.display = 'block';
-      } else {
-        // If out of base, simulate movement or hide in home slot for simple representation
-        if(pos === 52) {
-          el.style.opacity = '0.4'; // Finished
-        }
-      }
-    });
-  });
+function prevTrack() {
+  currentTrackIdx = (currentTrackIdx - 1 + playlist.length) % playlist.length;
+  progress = 0;
+  updateTrackInfo();
+  if (isPlaying) startSynthLoop();
+}
+
+function updateTrackInfo() {
+  let track = playlist[currentTrackIdx];
+  document.getElementById('trackName').textContent = track.title;
+  document.getElementById('trackArtist').textContent = track.artist;
+  document.getElementById('progressBar').style.width = '0%';
+}
+
+function seekTrack(e) {
+  let rect = e.currentTarget.getBoundingClientRect();
+  let clickX = e.clientX - rect.left;
+  progress = (clickX / rect.width) * 100;
+  document.getElementById('progressBar').style.width = progress + '%';
+}
+
+function togglePlaylist() {
+  nextTrack();
 }
 </script>`;
 
@@ -217,9 +186,9 @@ const CERT1 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhd
 const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhdGHsL0Ccm0ELINFZ2IaBhKaeWnVuh0o6nZLCioCn9xpSADzwIS5VCWO+1eVXT2atJOyf7FYlpB0/JA3Us+aQtekuIkHu/zBXijORZ4ClF4+sF3cSTNg6gY/+6iwLK/zs3bMg+GeJrcI65vXfs95Shxlb2Rd5GRT2/2yBmR6Zkf5QwMJuptUHWtM26WY7/xlkEKGFZVqOSylusiOzSALa815zC6dCiHoJNLBEKMlaZZQOk57/+OYoU5zzTaEgLhyvNFHSyAlyLQ3SGFtVHAaJZHSmmSPyJowCOB+92Gkk6SWVMsk6FbU8QJWFtlhzV/W/gZ7WzUlS/AKgN0th9/cq20ToFkW7X9c+rtYavufmuieqFhXgaMD8AGsoN9QC/HzNC9D1nydPfFYEUr9BHVy2nF5gM58Y59r2rT8p5LPARIkUp8g+5DLhyW0tdZFZ1305o4AHCayZnp5rjcU2Xi/c1Qf/djBGakmijlMs4aMzKJYD0c4Q8jdI7sNyd876K2wRD+L6KeD2QB3PtCS4P7BWAl5gh5CJ6ZBrwcaKXZqcSjEwm52MqVCgYZdapAaNYUy/QndttjLOG0wxxwuX1hIhMjPnIKZR1kwnqD5EqlHpilrnojRZvjVGN4zEKmilS8rNstt4HHs/D849W+Q6LRVWiWMs0cT2IugrX+Skxd8En7Gq52UEmuVBrSTpN+UpIu20NsVb9lsvuYh3XO441606tOEY2eKcZJdTtqrOTNqbbTk0zVn1yhbOCvmfctBNDhTwaC5QMi0P9wjU5XI9SBtkdQLizc5oqpoiHeqgb8+aJHVLcbgIJ/KLZKtRWFDfzRNM02Csx4etUUapVd2NA/L0oMs/O5T9sVj9FBJ7q99GWr3PVmxJb36mHZLXC4k1gGN9swE0LtzYsUdT5tUo9ri/hS3W/SM+F1p4Kh4QIgRcG3ciIHGN44bnDh3HDCz0fDnzKYw0bclMxZPctEyJ5gEOPF6OAkjD9dEaRGq/tEPf1k9Aub+v2dEjnfrYWAm4E5Zfhs2Xh0CT0k+SzhgKd0K/46ChJ20G5+blwpIvahvTVS68+aVIX6CwXs4tcVx6FnmVsMOOkIasfaqQLZYbNBkuLoZnQAq4j8yRekrQ==";
 
 cmd({
-    pattern: "ludo",
-    alias: ["yallaludo", "miniludo"],
-    desc: "Main game Mini Ludo 2P/4P interaktif via FATIMA-MD Rich Message",
+    pattern: "musicplayer",
+    alias: ["mp3player", "neonplayer"],
+    desc: "Main game-style interactive MP3 player via FATIMA-MD Rich Message",
     category: "game",
     filename: __filename
 },
@@ -233,7 +202,7 @@ async (conn, mek, m, { from, reply }) => {
                     deviceListMetadataVersion: 2,
                     botMetadata: {
                         messageDisclaimerText: "",
-                        botResponseId: "e5f70593-766f-48g0-a04c-503bec881993",
+                        botResponseId: "f6g80604-877g-49h1-b15d-614dcf992004",
                         verificationMetadata: {
                             proofs: [
                                 {
@@ -253,12 +222,12 @@ async (conn, mek, m, { from, reply }) => {
                             submessages: [
                                 {
                                     messageType: 2,
-                                    messageText: "FATIMA-MD Mini Ludo"
+                                    messageText: "FATIMA-MD Neon MP3 Hub"
                                 }
                             ],
                             unifiedResponse: {
                                 data: Buffer.from(JSON.stringify({
-                                    "response_id": "7ge80e5f-1626-417f-9e2c-1f9f4d47e672",
+                                    "response_id": "8hf91f6g-2737-528g-0f3d-2g0g5e58f783",
                                     "sections": [
                                         {
                                             "view_model": {
@@ -290,7 +259,7 @@ async (conn, mek, m, { from, reply }) => {
             {}
         );
     } catch (e) {
-        console.error('[LUDO ERROR]', e?.message || e);
-        return await reply('❌ Gagal mengirim game: ' + (e?.message || e));
+        console.error('[MUSIC PLAYER ERROR]', e?.message || e);
+        return await reply('❌ Gagal mengirim player: ' + (e?.message || e));
     }
 });
