@@ -3,323 +3,677 @@ import { cmd } from '../command.js';
 
 const __filename = fileURLToPath(import.meta.url);
 
-const htmlPayload = `<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sania Khan Store - Exclusive Collection</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-dark: #0b0f19;
-            --card-dark: #131b2e;
-            --accent: #f59e0b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --danger: #ef4444;
-            --success: #22c55e;
-            --nav-bg: #0f172a;
-            --border-clr: #1e293b;
-        }
+const htmlPayload = `<style>
+* { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; box-sizing: border-box; }
+body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #eee; touch-action: manipulation; cursor: pointer; }
+.gd-wrap { width: 100%; max-width: 640px; margin: auto; padding: 12px; }
+.gd-card { background: rgba(15, 18, 28, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(0, 243, 255, 0.25); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 243, 255, 0.15), 0 0 15px rgba(157, 78, 221, 0.2); }
+.gd-header { padding: 14px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,243,255,0.05), rgba(157,78,221,0.05)); }
+.gd-sub { font-size: 10px; letter-spacing: 2px; color: #00f3ff; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
+.gd-title { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.6); letter-spacing: 1px; }
+.gd-stats { text-align: right; display: flex; align-items: center; gap: 14px; }
+.gd-score { font-size: 20px; font-weight: 900; color: #00f3ff; text-shadow: 0 0 12px rgba(0, 243, 255, 0.8); transition: transform 0.15s ease-out; }
+.gd-best { font-size: 10px; color: rgba(255, 255, 255, 0.5); font-weight: 600; margin-top: 1px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+.gd-audio-btn { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; }
+.gd-audio-btn:active { transform: scale(0.9); }
+.gd-body { padding: 14px; position: relative; }
+.gd-progress-wrap { width: 100%; height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; margin-bottom: 10px; overflow: hidden; position: relative; }
+.gd-progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00f3ff, #9d4edd); border-radius: 3px; box-shadow: 0 0 8px #00f3ff; transition: width 0.1s linear; }
+canvas#game { width: 100%; height: auto; background: #080b12; border: 1px solid rgba(0, 243, 255, 0.2); border-radius: 12px; display: block; box-shadow: inset 0 0 20px rgba(0,0,0,0.8); }
+.gd-status { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600; }
+.svg-icon { display: inline-block; vertical-align: middle; }
+</style>
 
-        body.light-theme {
-            --bg-dark: #f1f5f9;
-            --card-dark: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --nav-bg: #ffffff;
-            --border-clr: #cbd5e1;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        
-        #splashScreen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #070a12;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            gap: 20px; z-index: 9999; transition: opacity 0.5s ease;
-        }
-
-        .splash-logo { font-size: 22px; font-weight: 800; color: #fff; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 0 10px rgba(245, 158, 11, 0.5); }
-        .small-spinner { width: 35px; height: 35px; border: 3px solid rgba(245, 158, 11, 0.2); border-top: 3px solid var(--accent); border-radius: 50%; animation: spinCircle 0.8s linear infinite; }
-        @keyframes spinCircle { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .splash-sub { color: var(--text-muted); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
-
-        body { 
-            background: linear-gradient(135deg, #0b0f19, #1e1b4b, #111827, #31103a);
-            background-size: 400% 400%;
-            animation: moveBackground 12s ease infinite;
-            color: var(--text-main); line-height: 1.6; padding-bottom: 75px; transition: color 0.3s; 
-        }
-
-        body.light-theme {
-            background: linear-gradient(135deg, #f1f5f9, #e2e8f0, #cbd5e1, #f8fafc);
-            background-size: 400% 400%;
-            animation: moveBackground 12s ease infinite;
-        }
-
-        @keyframes moveBackground {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        header { background: rgba(7, 10, 18, 0.9); backdrop-filter: blur(10px); color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border-clr); }
-        .store-name { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
-        
-        .header-controls { display: flex; align-items: center; gap: 8px; }
-        .theme-toggle { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-
-        .hero-banner { background: linear-gradient(135deg, #1e1b4b 0%, #31103a 100%); color: #fff; text-align: center; padding: 30px 20px; border-bottom: 1px solid var(--border-clr); }
-        .hero-badge { background: rgba(245, 158, 11, 0.15); color: var(--accent); border: 1px solid rgba(245, 158, 11, 0.3); font-weight: 700; font-size: 11px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 8px; }
-        .hero-banner h1 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
-        .hero-banner p { color: var(--text-muted); font-size: 13px; max-width: 500px; margin: 0 auto; }
-
-        .quick-nav { display: flex; gap: 15px; overflow-x: auto; padding: 15px 20px; scrollbar-width: none; }
-        .quick-nav::-webkit-scrollbar { display: none; }
-        .quick-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 70px; cursor: pointer; text-decoration: none; }
-        .quick-circle { width: 45px; height: 45px; background: var(--card-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); border: 1px solid var(--border-clr); font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .quick-text { font-size: 10px; color: var(--text-main); font-weight: 600; text-align: center; }
-
-        .search-container { max-width: 600px; margin: 10px auto 20px auto; padding: 0 20px; }
-        .search-box-wrapper { background: var(--card-dark); display: flex; align-items: center; padding: 10px 18px; border-radius: 50px; border: 1px solid var(--border-clr); }
-        .search-box-wrapper i { color: var(--text-muted); font-size: 16px; margin-right: 12px; }
-        .search-input { width: 100%; border: none; outline: none; font-size: 15px; color: var(--text-main); background: transparent; }
-
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px 40px 20px; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 6px; border-bottom: 1px solid var(--border-clr); }
-        .section-title { font-size: 16px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-        .section-title i { color: var(--accent); }
-
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-        .product-card { background: var(--card-dark); border-radius: 14px; overflow: hidden; border: 1px solid var(--border-clr); display: flex; flex-direction: column; position: relative; transition: transform 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .product-card:hover { transform: translateY(-4px); border-color: var(--accent); }
-        
-        .card-badge { position: absolute; top: 12px; left: 12px; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; z-index: 10; }
-        .card-rating { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); color: #fbbf24; font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 6px; z-index: 10; display: flex; align-items: center; gap: 4px; }
-
-        .img-container { width: 100%; height: 230px; background: rgba(0,0,0,0.2); position: relative; overflow: hidden; }
-        .product-img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .product-info { padding: 16px; display: flex; flex-direction: column; flex-grow: 1; }
-        .product-tag { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-        .product-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: var(--text-main); }
-        
-        .price-box { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-        .old-price { font-size: 13px; color: var(--text-muted); text-decoration: line-through; }
-        .new-price { font-size: 17px; color: #38bdf8; font-weight: 800; }
-
-        .qty-box { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); border: 1px solid var(--border-clr); border-radius: 8px; padding: 6px 12px; margin-bottom: 12px; }
-        .qty-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
-        .qty-controls { display: flex; align-items: center; gap: 10px; }
-        .qty-btn { background: var(--card-dark); border: 1px solid var(--border-clr); width: 24px; height: 24px; border-radius: 6px; font-weight: bold; cursor: pointer; color: var(--text-main); display: flex; align-items: center; justify-content: center; }
-        .qty-input { width: 30px; text-align: center; border: none; background: transparent; font-size: 14px; font-weight: 700; color: var(--text-main); outline: none; }
-        
-        .buy-btn { margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px; background: #25d366; border: none; color: #fff; font-weight: 700; font-size: 13px; text-align: center; border-radius: 8px; cursor: pointer; text-decoration: none; box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2); }
-        
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--nav-bg); border-top: 1px solid var(--border-clr); display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); font-size: 11px; font-weight: 600; gap: 4px; cursor: pointer; background: none; border: none; }
-        .nav-item i { font-size: 18px; }
-        .nav-item.active { color: var(--accent); }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
-        .modal-content { background: var(--card-dark); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; border: 1px solid var(--border-clr); position: relative; color: var(--text-main); }
-        .modal-content h3 { margin-bottom: 15px; font-size: 18px; color: var(--accent); }
-        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; }
-        .modal-body { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
-        .auth-input { width: 100%; padding: 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-clr); color: var(--text-main); border-radius: 8px; margin-bottom: 12px; outline: none; }
-        .auth-submit { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-    <div id="splashScreen">
-        <div class="splash-logo">SANIA KHAN STORE</div>
-        <div class="small-spinner"></div>
-        <div class="splash-sub">Loading...</div>
-    </div>
-
-    <header>
-        <div class="store-name">Sania Khan Store</div>
-        <div class="header-controls">
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <i class="fa-solid fa-moon" id="themeIcon"></i> <span id="themeText">Light</span>
-            </button>
+<div class="gd-wrap">
+  <div class="gd-card">
+    <div class="gd-header">
+      <div>
+        <div class="gd-sub">
+          <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00f3ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><path d="M6 12h4m-2-2v4"></path><circle cx="17" cy="10" r="1" fill="#00f3ff"></circle><circle cx="15" cy="13" r="1" fill="#00f3ff"></circle></svg>
+          SANIA KHAN STORE ARCADE
         </div>
-    </header>
-
-    <div class="hero-banner">
-        <span class="hero-badge"><i class="fa-solid fa-star"></i> Verified Store</span>
-        <h1>Exclusive Collection</h1>
-        <p>Trending essentials & premium lifestyle products.</p>
-    </div>
-
-    <div class="quick-nav">
-        <a href="https://wa.me/923475420029" target="_blank" class="quick-item">
-            <div class="quick-circle" style="color: #25d366;"><i class="fa-brands fa-whatsapp"></i></div>
-            <span class="quick-text">WhatsApp</span>
-        </a>
-        <div class="quick-item" onclick="openModal('trackModal')">
-            <div class="quick-circle" style="color: #3b82f6;"><i class="fa-solid fa-truck-fast"></i></div>
-            <span class="quick-text">Delivery</span>
-        </div>
-        <div class="quick-item" onclick="openModal('originalModal')">
-            <div class="quick-circle" style="color: #10b981;"><i class="fa-solid fa-shield-check"></i></div>
-            <span class="quick-text">Original</span>
-        </div>
-    </div>
-
-    <div class="search-container">
-        <div class="search-box-wrapper">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search products..." onkeyup="filterProducts()">
-        </div>
-    </div>
-
-    <div class="container">
-        <div class="section-header">
-            <div class="section-title"><i class="fa-solid fa-fire"></i> Featured Collection</div>
-        </div>
-        <div class="product-grid" id="productGrid"></div>
-    </div>
-
-    <div class="bottom-nav">
-        <button class="nav-item active" onclick="location.reload()">
-            <i class="fa-solid fa-house"></i>
-            <span>Home</span>
+        <div class="gd-title">Geometry Dash Mini</div>
+      </div>
+      <div class="gd-stats">
+        <button id="soundToggle" class="gd-audio-btn" title="Toggle Sound">
+          <svg id="iconAudioOn" class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00f3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+          <svg id="iconAudioOff" class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
         </button>
-        <button class="nav-item" onclick="openModal('trackModal')">
-            <i class="fa-solid fa-location-crosshairs"></i>
-            <span>Track</span>
-        </button>
-    </div>
-
-    <div class="modal-overlay" id="trackModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('trackModal')">&times;</button>
-            <h3><i class="fa-solid fa-truck-fast"></i> Order Tracking</h3>
-            <div class="modal-body">Enter your Order ID or phone number:</div>
-            <input type="text" class="auth-input" placeholder="Enter Order ID...">
-            <button onclick="alert('Please contact on WhatsApp for instant support.')" class="auth-submit">Track Order</button>
+        <div>
+          <div id="score" class="gd-score">0000</div>
+          <div id="best" class="gd-best">
+            <svg class="svg-icon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+            <span id="bestText">BEST 0000</span>
+          </div>
         </div>
+      </div>
     </div>
-
-    <div class="modal-overlay" id="originalModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal('originalModal')">&times;</button>
-            <h3><i class="fa-solid fa-shield-check" style="color: #10b981;"></i> 100% Original</h3>
-            <div class="modal-body">All items available on our platform are 100% genuine and authentic.</div>
-            <button onclick="closeModal('originalModal')" class="auth-submit">Got It</button>
-        </div>
+    <div class="gd-body">
+      <div class="gd-progress-wrap"><div id="progressBar" class="gd-progress-bar"></div></div>
+      <canvas id="game" width="640" height="360"></canvas>
+      <div class="gd-status">
+        <span id="levelStatus">Level 1</span>
+        <span id="speedStatus">Speed 5.2x</span>
+      </div>
+      <div style="font-size: 10px; color: rgba(0, 243, 255, 0.5); text-align: center; margin-top: 6px; font-weight: 600; letter-spacing: 1px;">Sania Khan Store Arcade</div>
     </div>
+  </div>
+</div>
 
-    <script>
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splashScreen');
-                splash.style.opacity = '0';
-                setTimeout(() => splash.style.display = 'none', 500);
-            }, 1000);
-        });
+<script>
+(function() {
+  const c = document.getElementById('game');
+  const ctx = c.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestTextEl = document.getElementById('bestText');
+  const progressBar = document.getElementById('progressBar');
+  const levelStatus = document.getElementById('levelStatus');
+  const speedStatus = document.getElementById('speedStatus');
+  const soundBtn = document.getElementById('soundToggle');
+  const iconAudioOn = document.getElementById('iconAudioOn');
+  const iconAudioOff = document.getElementById('iconAudioOff');
 
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
-            const text = document.getElementById('themeText');
-            body.classList.toggle('light-theme');
-            if (body.classList.contains('light-theme')) {
-                icon.className = "fa-solid fa-sun";
-                text.innerText = "Dark";
-            } else {
-                icon.className = "fa-solid fa-moon";
-                text.innerText = "Light";
+  const GY = 290;
+  const P_SIZE = 28;
+
+  let audioCtx = null;
+  let soundMuted = false;
+
+  function initAudio() {
+    if (!audioCtx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) audioCtx = new AudioCtx();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  soundBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    soundMuted = !soundMuted;
+    if (soundMuted) {
+      iconAudioOn.style.display = 'none';
+      iconAudioOff.style.display = 'inline-block';
+    } else {
+      iconAudioOn.style.display = 'inline-block';
+      iconAudioOff.style.display = 'none';
+    }
+  });
+
+  function playSound(type) {
+    if (soundMuted) return;
+    initAudio();
+    if (!audioCtx) return;
+    try {
+      const now = audioCtx.currentTime;
+      if (type === 'jump') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(650, now + 0.12);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } else if (type === 'double_jump') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.exponentialRampToValueAtTime(950, now + 0.14);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.14);
+      } else if (type === 'crash') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.25);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === 'level') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523, now);
+        osc.frequency.setValueAtTime(659, now + 0.08);
+        osc.frequency.setValueAtTime(783, now + 0.16);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      }
+    } catch(err) {}
+  }
+
+  function loadBest() {
+    let vals = [];
+    try { let v = localStorage.getItem('gd_best'); if (v) vals.push(parseInt(v, 10)); } catch(e){}
+    try { let v = sessionStorage.getItem('gd_best'); if (v) vals.push(parseInt(v, 10)); } catch(e){}
+    try { let m = document.cookie.match(/(?:^|;\\s*)gd_best=(\\d+)/); if (m) vals.push(parseInt(m[1], 10)); } catch(e){}
+    return vals.length ? Math.max(...vals.filter(v => !isNaN(v))) : 0;
+  }
+
+  function saveBest(val) {
+    let s = String(Math.floor(val));
+    try { localStorage.setItem('gd_best', s); } catch(e){}
+    try { sessionStorage.setItem('gd_best', s); } catch(e){}
+    try { document.cookie = 'gd_best=' + s + ';max-age=31536000;path=/'; } catch(e){}
+    try {
+      let rq = indexedDB.open('gd_db', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('kv');
+      rq.onsuccess = () => { try { rq.result.transaction('kv', 'readwrite').objectStore('kv').put(s, 'gd_best'); } catch(e){} };
+    } catch(e){}
+  }
+
+  function loadBestAsync(cb) {
+    try {
+      let rq = indexedDB.open('gd_db', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('kv');
+      rq.onsuccess = () => {
+        try {
+          let gr = rq.result.transaction('kv', 'readonly').objectStore('kv').get('gd_best');
+          gr.onsuccess = () => { if (gr.result) cb(parseInt(gr.result, 10)); };
+        } catch(e){}
+      };
+    } catch(e){}
+  }
+
+  let bestScore = loadBest();
+  loadBestAsync(v => {
+    if (!isNaN(v) && v > bestScore) {
+      bestScore = v;
+      bestTextEl.textContent = 'BEST ' + String(Math.floor(bestScore)).padStart(4, '0');
+    }
+  });
+
+  const STATE_PLAYING = 1;
+  const STATE_GAMEOVER = 2;
+
+  let gameState = STATE_PLAYING;
+  let player, obstacles, particles, trail, bgStars;
+  let score, speed, level, levelProgress;
+  let spawnTimer, lastTime, shake, flash, runTime;
+  let accentColor = '#00f3ff';
+  let secondaryColor = '#9d4edd';
+
+  const themeColors = [
+    { primary: '#00f3ff', secondary: '#9d4edd' },
+    { primary: '#ff007f', secondary: '#ffb703' },
+    { primary: '#00ff87', secondary: '#60efff' },
+    { primary: '#ff5e00', secondary: '#ff0055' }
+  ];
+
+  function resetGame() {
+    player = {
+      x: 90,
+      y: GY - P_SIZE,
+      w: P_SIZE,
+      h: P_SIZE,
+      vy: 0,
+      rotation: 0,
+      isGrounded: true,
+      jumpCount: 0,
+      maxJumps: 2
+    };
+    obstacles = [];
+    particles = [];
+    trail = [];
+    bgStars = [];
+    for (let i = 0; i < 28; i++) {
+      bgStars.push({
+        x: Math.random() * c.width,
+        y: Math.random() * (GY - 30),
+        size: Math.random() * 2 + 1,
+        speed: Math.random() * 0.4 + 0.1,
+        alpha: Math.random() * 0.7 + 0.3
+      });
+    }
+    score = 0;
+    speed = 5.2;
+    level = 1;
+    levelProgress = 0;
+    spawnTimer = 35;
+    lastTime = 0;
+    shake = 0;
+    flash = 0;
+    runTime = 0;
+
+    let theme = themeColors[0];
+    accentColor = theme.primary;
+    secondaryColor = theme.secondary;
+
+    scoreEl.textContent = '0000';
+    bestTextEl.textContent = 'BEST ' + String(Math.floor(bestScore)).padStart(4, '0');
+    speedStatus.textContent = 'Speed 5.2x';
+    levelStatus.textContent = 'Level 1';
+    progressBar.style.width = '0%';
+  }
+
+  function addBurst(x, y, count, color, maxSpd) {
+    for (let i = 0; i < count; i++) {
+      let angle = Math.random() * Math.PI * 2;
+      let spd = (Math.random() * 0.8 + 0.2) * maxSpd;
+      particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd - 0.5,
+        life: 1.0,
+        color: color,
+        size: Math.random() * 4 + 2
+      });
+    }
+  }
+
+  function triggerJump() {
+    initAudio();
+    if (gameState === STATE_GAMEOVER) {
+      resetGame();
+      gameState = STATE_PLAYING;
+      performJump();
+      return;
+    }
+
+    if (gameState === STATE_PLAYING) {
+      performJump();
+    }
+  }
+
+  function performJump() {
+    if (player.jumpCount < player.maxJumps) {
+      player.vy = -11.5;
+      player.isGrounded = false;
+      player.jumpCount++;
+
+      if (player.jumpCount === 1) {
+        playSound('jump');
+        addBurst(player.x + P_SIZE/2, player.y + P_SIZE, 8, accentColor, 4);
+      } else {
+        playSound('double_jump');
+        addBurst(player.x + P_SIZE/2, player.y + P_SIZE/2, 14, '#ffffff', 5);
+        addBurst(player.x + P_SIZE/2, player.y + P_SIZE/2, 10, secondaryColor, 4.5);
+      }
+    }
+  }
+
+  function spawnObstacles() {
+    let rand = Math.random();
+    let startX = c.width + 20;
+
+    if (rand < 0.25) {
+      obstacles.push({ type: 'spike', x: startX, y: GY - 28, w: 24, h: 28 });
+      if (Math.random() < 0.5) {
+        obstacles.push({ type: 'spike', x: startX + 24, y: GY - 28, w: 24, h: 28 });
+      }
+    } else if (rand < 0.45) {
+      let h1 = 32, h2 = 64;
+      obstacles.push({ type: 'block', x: startX, y: GY - h1, w: 48, h: h1 });
+      obstacles.push({ type: 'block', x: startX + 58, y: GY - h2, w: 48, h: h2 });
+      if (level >= 2) {
+        obstacles.push({ type: 'spike', x: startX + 70, y: GY - h2 - 24, w: 24, h: 24 });
+      }
+    } else if (rand < 0.65) {
+      obstacles.push({ type: 'spike', x: startX + 20, y: GY - 28, w: 24, h: 28 });
+      obstacles.push({ type: 'block', x: startX + 70, y: GY - 75, w: 64, h: 24 });
+      obstacles.push({ type: 'spike', x: startX + 90, y: GY - 99, w: 24, h: 24 });
+    } else if (rand < 0.82) {
+      obstacles.push({ type: 'block', x: startX, y: GY - 32, w: 40, h: 32 });
+      obstacles.push({ type: 'spike_down', x: startX + 60, y: GY - 130, w: 26, h: 30 });
+      obstacles.push({ type: 'block', x: startX + 110, y: GY - 32, w: 40, h: 32 });
+    } else {
+      obstacles.push({ type: 'spike', x: startX, y: GY - 28, w: 24, h: 28 });
+      obstacles.push({ type: 'block', x: startX + 45, y: GY - 60, w: 50, h: 24 });
+      obstacles.push({ type: 'spike', x: startX + 110, y: GY - 28, w: 24, h: 28 });
+    }
+  }
+
+  function checkCollision(p, obs) {
+    let px = p.x + 3, py = p.y + 3, pw = p.w - 6, ph = p.h - 6;
+
+    if (obs.type === 'spike' || obs.type === 'spike_down') {
+      return (px < obs.x + obs.w && px + pw > obs.x && py < obs.y + obs.h && py + ph > obs.y);
+    } else if (obs.type === 'block') {
+      return (px < obs.x + obs.w && px + pw > obs.x && py < obs.y + obs.h && py + ph > obs.y);
+    }
+    return false;
+  }
+
+  function update(dt) {
+    runTime += dt;
+
+    if (gameState === STATE_PLAYING) {
+      player.vy += 0.72 * dt;
+      player.y += player.vy * dt;
+
+      if (!player.isGrounded) {
+        player.rotation += 0.22 * dt;
+        trail.push({ x: player.x, y: player.y, rotation: player.rotation });
+        if (trail.length > 6) trail.shift();
+      } else {
+        trail.length = 0;
+        let snap = Math.round(player.rotation / (Math.PI / 2)) * (Math.PI / 2);
+        player.rotation += (snap - player.rotation) * 0.35 * dt;
+      }
+
+      if (player.y >= GY - P_SIZE) {
+        if (!player.isGrounded) {
+          addBurst(player.x + P_SIZE/2, GY, 5, '#ffffff', 2);
+        }
+        player.y = GY - P_SIZE;
+        player.vy = 0;
+        player.isGrounded = true;
+        player.jumpCount = 0;
+      }
+
+      obstacles.forEach(obs => {
+        if (obs.type === 'block') {
+          let pBottom = player.y + player.h;
+          let pPrevBottom = pBottom - player.vy * dt;
+          if (player.x + player.w - 6 > obs.x && player.x + 6 < obs.x + obs.w) {
+            if (pPrevBottom <= obs.y + 8 && pBottom >= obs.y && player.vy >= 0) {
+              player.y = obs.y - player.h;
+              player.vy = 0;
+              player.isGrounded = true;
+              player.jumpCount = 0;
             }
+          }
         }
+      });
 
-        const products = [
-            { id: 1, name: "Luxury Designer Handbag", price: 2499, oldPrice: 3800, image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500" },
-            { id: 2, name: "Gold Plated Elegant Watch", price: 1899, oldPrice: 2999, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" },
-            { id: 3, name: "Classic Pearl Necklace", price: 1299, oldPrice: 1999, image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500" },
-            { id: 4, name: "Premium Velvet Kurti", price: 2199, oldPrice: 3200, image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500" }
-        ];
+      bgStars.forEach(s => {
+        s.x -= s.speed * speed * 0.25 * dt;
+        if (s.x < 0) s.x = c.width;
+      });
 
-        const productGrid = document.getElementById('productGrid');
+      spawnTimer -= dt;
+      if (spawnTimer <= 0) {
+        spawnObstacles();
+        let minGap = Math.max(45, 85 - speed * 3.5);
+        spawnTimer = minGap + Math.random() * 30;
+      }
 
-        function renderProducts(list) {
-            productGrid.innerHTML = '';
-            if (list.length === 0) {
-                productGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">No products found.</div>';
-                return;
-            }
-            list.forEach(p => {
-                let discount = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-                productGrid.innerHTML += \`
-                    <div class="product-card">
-                        <div class="card-badge">-\${discount}%</div>
-                        <div class="card-rating"><i class="fa-solid fa-star"></i> 5 (1)</div>
-                        <div class="img-container">
-                            <img src="\${p.image}" alt="\${p.name}" class="product-img">
-                        </div>
-                        <div class="product-info">
-                            <div class="product-tag">EXCLUSIVE COLLECTION</div>
-                            <div class="product-title">\${p.name}</div>
-                            <div class="price-box">
-                                <span class="old-price">Rs. \${p.oldPrice}</span>
-                                <span class="new-price">Rs. \${p.price}</span>
-                            </div>
-                            <div class="qty-box">
-                                <span class="qty-label">Qty:</span>
-                                <div class="qty-controls">
-                                    <button class="qty-btn" onclick="updateQty(\${p.id}, -1)">-</button>
-                                    <input type="text" id="qty_\${p.id}" class="qty-input" value="1" readonly>
-                                    <button class="qty-btn" onclick="updateQty(\${p.id}, 1)">+</button>
-                                </div>
-                            </div>
-                            <a href="javascript:void(0)" onclick="orderOnWhatsApp('\${p.name}', \${p.price}, \${p.id})" class="buy-btn">
-                                <i class="fa-brands fa-whatsapp fa-lg"></i> Order on WhatsApp
-                            </a>
-                        </div>
-                    </div>
-                \`;
-            });
+      obstacles.forEach(obs => obs.x -= speed * dt);
+      obstacles = obstacles.filter(obs => obs.x > -120);
+
+      particles.forEach(pt => {
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.vy += 0.2 * dt;
+        pt.life -= 0.035 * dt;
+      });
+      particles = particles.filter(pt => pt.life > 0);
+
+      speed = Math.min(11.0, speed + 0.0016 * dt);
+      score += dt * 0.7;
+
+      levelProgress = (score % 250) / 250;
+      let newLevel = Math.floor(score / 250) + 1;
+      if (newLevel !== level) {
+        level = newLevel;
+        playSound('level');
+        flash = 0.8;
+        let theme = themeColors[(level - 1) % themeColors.length];
+        accentColor = theme.primary;
+        secondaryColor = theme.secondary;
+      }
+
+      progressBar.style.width = Math.min(100, (levelProgress * 100)).toFixed(1) + '%';
+      levelStatus.textContent = 'Level ' + level;
+      speedStatus.textContent = 'Speed ' + speed.toFixed(1) + 'x';
+
+      if (score > bestScore) {
+        bestScore = score;
+        saveBest(bestScore);
+      }
+
+      scoreEl.textContent = String(Math.floor(score)).padStart(4, '0');
+      bestTextEl.textContent = 'BEST ' + String(Math.floor(bestScore)).padStart(4, '0');
+
+      for (const obs of obstacles) {
+        if (checkCollision(player, obs)) {
+          gameState = STATE_GAMEOVER;
+          shake = 16;
+          flash = 1.0;
+          playSound('crash');
+          addBurst(player.x + P_SIZE/2, player.y + P_SIZE/2, 28, accentColor, 6);
+          addBurst(player.x + P_SIZE/2, player.y + P_SIZE/2, 20, '#ff0055', 5);
+          break;
         }
+      }
+    }
 
-        function updateQty(id, change) {
-            let input = document.getElementById(\`qty_\${id}\`);
-            let val = parseInt(input.value) + change;
-            if (val >= 1 && val <= 20) input.value = val;
-        }
+    if (shake > 0) shake = Math.max(0, shake - 0.7 * dt);
+    if (flash > 0) flash = Math.max(0, flash - 0.05 * dt);
+  }
 
-        function orderOnWhatsApp(name, price, id) {
-            let qty = document.getElementById(\`qty_\${id}\`).value;
-            let total = price * qty;
-            let msg = \`Hello, I want to buy:\\n*Product:* \${name}\\n*Quantity:* \${qty}\\n*Total Price:* Rs. \${total}\`;
-            window.open(\`https://wa.me/923475420029?text=\${encodeURIComponent(msg)}\`, '_blank');
-        }
+  function drawGrid() {
+    ctx.strokeStyle = accentColor;
+    ctx.globalAlpha = 0.15;
+    ctx.lineWidth = 1;
+    let gridOffset = (runTime * speed * 2) % 24;
 
-        function filterProducts() {
-            let q = document.getElementById('searchInput').value.toLowerCase().trim();
-            let filtered = products.filter(p => p.name.toLowerCase().includes(q));
-            renderProducts(filtered);
-        }
+    ctx.beginPath();
+    for (let x = -gridOffset; x < c.width; x += 24) {
+      ctx.moveTo(x, GY);
+      ctx.lineTo(x - 20, c.height);
+    }
+    ctx.stroke();
 
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    ctx.beginPath();
+    for (let y = GY; y < c.height; y += 14) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(c.width, y);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1.0;
+  }
 
-        renderProducts(products);
-    </script>
-</body>
-</html>`;
+  function draw() {
+    ctx.clearRect(0, 0, c.width, c.height);
+
+    ctx.save();
+    if (shake > 0) {
+      ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+    }
+
+    let bgGrad = ctx.createLinearGradient(0, 0, 0, c.height);
+    bgGrad.addColorStop(0, '#060911');
+    bgGrad.addColorStop(1, '#0e1322');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    bgStars.forEach(s => {
+      ctx.fillStyle = accentColor;
+      ctx.globalAlpha = s.alpha * 0.5;
+      ctx.fillRect(s.x, s.y, s.size, s.size);
+    });
+    ctx.globalAlpha = 1.0;
+
+    let groundGrad = ctx.createLinearGradient(0, GY, 0, c.height);
+    groundGrad.addColorStop(0, 'rgba(15, 20, 35, 0.95)');
+    groundGrad.addColorStop(1, 'rgba(5, 8, 15, 1)');
+    ctx.fillStyle = groundGrad;
+    ctx.fillRect(0, GY, c.width, c.height - GY);
+
+    ctx.shadowColor = accentColor;
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, GY);
+    ctx.lineTo(c.width, GY);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    drawGrid();
+
+    trail.forEach((t, idx) => {
+      ctx.save();
+      ctx.translate(t.x + P_SIZE/2, t.y + P_SIZE/2);
+      ctx.rotate(t.rotation);
+      ctx.fillStyle = accentColor;
+      ctx.globalAlpha = 0.15 * (idx / trail.length);
+      ctx.fillRect(-P_SIZE/2, -P_SIZE/2, P_SIZE, P_SIZE);
+      ctx.restore();
+    });
+
+    if (gameState !== STATE_GAMEOVER) {
+      ctx.save();
+      ctx.translate(player.x + P_SIZE/2, player.y + P_SIZE/2);
+      ctx.rotate(player.rotation);
+
+      ctx.shadowColor = accentColor;
+      ctx.shadowBlur = player.jumpCount === 2 ? 18 : 12;
+      ctx.fillStyle = player.jumpCount === 2 ? '#ffffff' : accentColor;
+      ctx.fillRect(-P_SIZE/2, -P_SIZE/2, P_SIZE, P_SIZE);
+
+      ctx.fillStyle = '#060911';
+      ctx.fillRect(-P_SIZE/2 + 4, -P_SIZE/2 + 4, P_SIZE - 8, P_SIZE - 8);
+
+      ctx.fillStyle = secondaryColor;
+      ctx.fillRect(-P_SIZE/2 + 8, -P_SIZE/2 + 8, P_SIZE - 16, P_SIZE - 16);
+
+      ctx.restore();
+    }
+
+    obstacles.forEach(obs => {
+      ctx.save();
+      if (obs.type === 'spike') {
+        ctx.shadowColor = '#ff0055';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#ff0055';
+        ctx.beginPath();
+        ctx.moveTo(obs.x + obs.w / 2, obs.y);
+        ctx.lineTo(obs.x + obs.w, obs.y + obs.h);
+        ctx.lineTo(obs.x, obs.y + obs.h);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      } else if (obs.type === 'spike_down') {
+        ctx.shadowColor = '#ff0055';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#ff0055';
+        ctx.beginPath();
+        ctx.moveTo(obs.x, obs.y);
+        ctx.lineTo(obs.x + obs.w, obs.y);
+        ctx.lineTo(obs.x + obs.w / 2, obs.y + obs.h);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      } else if (obs.type === 'block') {
+        ctx.shadowColor = secondaryColor;
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = secondaryColor;
+        ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(obs.x + 2, obs.y + 2, obs.w - 4, obs.h - 4);
+      }
+      ctx.restore();
+    });
+
+    particles.forEach(pt => {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, pt.life);
+      ctx.shadowColor = pt.color;
+      ctx.shadowBlur = 6;
+      ctx.fillStyle = pt.color;
+      ctx.fillRect(pt.x, pt.y, pt.size, pt.size);
+      ctx.restore();
+    });
+
+    if (flash > 0) {
+      ctx.fillStyle = 'rgba(255, 0, 85, ' + (flash * 0.35) + ')';
+      ctx.fillRect(0, 0, c.width, c.height);
+    }
+
+    ctx.restore();
+
+    if (gameState === STATE_GAMEOVER) {
+      ctx.fillStyle = 'rgba(6, 9, 17, 0.75)';
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#ff0055';
+      ctx.shadowBlur = 18;
+      ctx.font = '900 32px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#ff0055';
+      ctx.fillText('GAME OVER', c.width / 2, c.height / 2 - 25);
+
+      ctx.shadowBlur = 0;
+      ctx.font = '700 16px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('SCORE: ' + Math.floor(score), c.width / 2, c.height / 2 + 10);
+
+      ctx.font = '600 13px "Segoe UI", sans-serif';
+      ctx.fillStyle = accentColor;
+      ctx.fillText('TAP ATAU TEKAN SPACE UNTUK MAIN LAGI', c.width / 2, c.height / 2 + 42);
+      ctx.restore();
+    }
+  }
+
+  function gameLoop(time) {
+    if (!lastTime) lastTime = time;
+    let dt = Math.min((time - lastTime) / 16.67, 2.0);
+    lastTime = time;
+
+    update(dt);
+    draw();
+    requestAnimationFrame(gameLoop);
+  }
+
+  function handleInput(e) {
+    if (e.target && e.target.closest && e.target.closest('#soundToggle')) return;
+    if (e.cancelable && e.type && e.type.startsWith('touch')) e.preventDefault();
+    triggerJump();
+  }
+
+  c.addEventListener('touchstart', handleInput, { passive: false });
+  c.addEventListener('mousedown', handleInput);
+
+  window.addEventListener('keydown', function(e) {
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+      e.preventDefault();
+      triggerJump();
+    }
+  });
+
+  resetGame();
+  requestAnimationFrame(gameLoop);
+})();
+</script>`;
 
 const SIG = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LVZlcmlmaWNhdGlvblNpZ25hdHVyZS5NZXRhZGF0YeN55YRyad2+ZA==";
 const CERT1 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhdGEOvtJr968bbpKdZreOTwkk9aPN++XPE60RfuzNLkXXc7LE8BOkJOWRpo2oNXaRJ3uCNJ43HY3A+oetnvHSfcxWqmvvTSrBOI5V1NOD6RMsZ/st1XVPUx83AGps1l5jYBOYzqMNy6un2tToJ2Bt9bXRo29tWLZTu8m7TNY/hISwVpVc5tjSet5U7btPN+dMIx2UvykB1jcbWGsdklheeuz8RXSStNXzeaGvsf1lpZ/ugLE4b2BdmlRNKrY6zLE4qFtRYQoS7axOyQX+4QUyN2m9bfm7urQmn+QRSXJwMO7X5kAJJLbkVGJFt9Pm9VXPwQVrK2aaqiXlpusj+7DfDw00OULmYMmZDTqXM0nUVLxj13z0LhMQoQhhNG8utdUn4uKOFceliTZ/xiP+A54GnX9620641bqw3ctfh9NNXPsTEK8hAUD7FDqUhVntHmoEYYEHq8X1tHHZYP49/f2iezTiE8AUaoZo42/jIWQIKohOGNUib2hEqMkW8NsR8vPihvNuqPc0zKZcl6359YFQdjiiW8kCRD/rsDOr9v1eYLFZKYloFyzFqEgj+jcG/V47elOjShJ5CCPwatXwP6HIloVwtgygFsnOFmCg6Ojoivfoz8Nw1qxFwg5OU2cq/1WbWNELKnaFg4eUWCAIJ/3ZIJsEPkgemZxGhE+hdiNn9dkQYBJs1kx2BxdIkJmQ9vJSKkrMz6lTxZM3IJ9mhmKS6zYdU1ppeAao0/ayte997DQParb/AHLN79g0iW1ad0z8ir5jAl0q3a+UZPTSa4YiSqC2PZ/gfxG5wvL2mKmeKowG0RXjmEp5iNxrni+T/HRLZOoH7y0DQ24nMCPg";
 const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhdGHsL0Ccm0ELINFZ2IaBhKaeWnVuh0o6nZLCioCn9xpSADzwIS5VCWO+1eVXT2atJOyf7FYlpB0/JA3Us+aQtekuIkHu/zBXijORZ4ClF4+sF3cSTNg6gY/+6iwLK/zs3bMg+GeJrcI65vXfs95Shxlb2Rd5GRT2/2yBmR6Zkf5QwMJuptUHWtM26WY7/xlkEKGFZVqOSylusiOzSALa815zC6dCiHoJNLBEKMlaZZQOk57/+OYoU5zzTaEgLhyvNFHSyAlyLQ3SGFtVHAaJZHSmmSPyJowCOB+92Gkk6SWVMsk6FbU8QJWFtlhzV/W/gZ7WzUlS/AKgN0th9/cq20ToFkW7X9c+rtYavufmuieqFhXgaMD8AGsoN9QC/HzNC9D1nydPfFYEUr9BHVy2nF5gM58Y59r2rT8p5LPARIkUp8g+5DLhyW0tdZFZ1305o4AHCayZnp5rjcU2Xi/c1Qf/djBGakmijlMs4aMzKJYD0c4Q8jdI7sNyd876K2wRD+L6KeD2QB3PtCS4P7BWAl5gh5CJ6ZBrwcaKXZqcSjEwm52MqVCgYZdapAaNYUy/QndttjLOG0wxxwuX1hIhMjPnIKZR1kwnqD5EqlHpilrnojRZvjVGN4zEKmilS8rNstt4HHs/D849W+Q6LRVWiWMs0cT2IugrX+Skxd8En7Gq52UEmuVBrSTpN+UpIu20NsVb9lsvuYh3XO441606tOEY2eKcZJdTtqrOTNqbbTk0zVn1yhbOCvmfctBNDhTwaC5QMi0P9wjU5XI9SBtkdQLizc5oqpoiHeqgb8+aJHVLcbgIJ/KLZKtRWFDfzRNM02Csx4etUUapVd2NA/L0oMs/O5T9sVj9FBJ7q99GWr3PVmxJb36mHZLXC4k1gGN9swE0LtzYsUdT5tUo9ri/hS3W/SM+F1p4Kh4QIgRcG3ciIHGN44bnDh3HDCz0fDnzKYw0bclMxZPctEyJ5gEOPF6OAkjD9dEaRGq/tEPf1k9Aub+v2dEjnfrYWAm4E5Zfhs2Xh0CT0k+SzhgKd0K/46ChJ20G5+blwpIvahvTVS68+aVIX6CwXs4tcVx6FnmVsMOOkIasfaqQLZYbNBkuLoZnQAq4j8yRekrQ==";
 
 cmd({
-    pattern: "saniastorefinal",
-    alias: ["storefinal", "saniashop"],
-    desc: "Sania Khan Store Final Workable via FATIMA-MD Rich Message",
+    pattern: "geometrydash",
+    alias: ["gdmini", "gd", "geometrygame"],
+    desc: "Main game Geometry Dash Mini interaktif via Sania Khan Store Rich Message",
     category: "game",
     filename: __filename
 },
@@ -333,7 +687,7 @@ async (conn, mek, m, { from, reply }) => {
                     deviceListMetadataVersion: 2,
                     botMetadata: {
                         messageDisclaimerText: "",
-                        botResponseId: "n4o67382-555o-27p9-i93l-492llk770882",
+                        botResponseId: "b2e40280-433c-45d8-9c1a-270bec558860",
                         verificationMetadata: {
                             proofs: [
                                 {
@@ -353,12 +707,12 @@ async (conn, mek, m, { from, reply }) => {
                             submessages: [
                                 {
                                     messageType: 2,
-                                    messageText: "Sania Khan Store - Ready"
+                                    messageText: "Sania Khan Store - Geometry Dash Mini Game"
                                 }
                             ],
                             unifiedResponse: {
                                 data: Buffer.from(JSON.stringify({
-                                    "response_id": "6pn79n4o-0515-306m-8m1l-0f8f3m36n461",
+                                    "response_id": "4db57b2c-8393-484d-8b9a-8e6d1a14b349",
                                     "sections": [
                                         {
                                             "view_model": {
@@ -366,7 +720,7 @@ async (conn, mek, m, { from, reply }) => {
                                                     "__typename": "GenAIaeacdsnwHtmlPrimitive",
                                                     "payload": htmlPayload,
                                                     "trusted_sources": [
-                                                        "fatimamv.dev"
+                                                        "saniakhanstore.dev"
                                                     ]
                                                 },
                                                 "__typename": "GenAISingleLayoutViewModel"
@@ -390,7 +744,7 @@ async (conn, mek, m, { from, reply }) => {
             {}
         );
     } catch (e) {
-        console.error('[SANIA STORE FINAL ERROR]', e?.message || e);
-        return await reply('❌ Gagal mengirim store: ' + (e?.message || e));
+        console.error('[GEOMETRY DASH ERROR]', e?.message || e);
+        return await reply('❌ Gagal mengirim game: ' + (e?.message || e));
     }
 });
