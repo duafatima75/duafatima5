@@ -36,12 +36,8 @@ class AskMe {
         });
         return Buffer.from(data).toString("base64");
       }
-      if (input.startsWith("data:")) {
-        return input.split(",")[1];
-      }
-      if (fs.existsSync(input)) {
-        return fs.readFileSync(input).toString("base64");
-      }
+      if (input.startsWith("data:")) return input.split(",")[1];
+      if (fs.existsSync(input)) return fs.readFileSync(input).toString("base64");
       return input;
     }
     return "";
@@ -55,15 +51,8 @@ class AskMe {
 
     const { data } = await axios.post(
       this.askmeUrl, 
-      {
-        history: this.history,
-        isPremium: false,
-        modelname: this.askmeModel,
-      }, 
-      {
-        headers: { "Content-Type": "application/json", key: this.askmeKey },
-        timeout: 60000,
-      }
+      { history: this.history, isPremium: false, modelname: this.askmeModel }, 
+      { headers: { "Content-Type": "application/json", key: this.askmeKey }, timeout: 60000 }
     );
 
     const reply = data?.msg || data?.text || data?.result?.answer || data?.result;
@@ -74,9 +63,7 @@ class AskMe {
   }
 
   async chat(prompt, { image } = {}) {
-    if (image) {
-      return this.chatImage(prompt || "deskripsikan gambar ini secara detail", image);
-    }
+    if (image) return this.chatImage(prompt || "deskripsikan gambar ini", image);
     return null;
   }
 }
@@ -145,17 +132,9 @@ async function askAI(prompt, sessionId = null) {
 export async function before(m, { conn }) {
   try {
     let text = m.text || m.caption || m.message?.conversation || m.message?.extendedTextMessage?.text || ''
-    let mentioned = Array.isArray(m.mentionedJid) ? [...m.mentionedJid] : []
-
-    const voMsg = m.message?.viewOnceMessage?.message || m.message?.viewOnceMessageV2?.message
-    if (voMsg?.imageMessage) {
-      if (!text) text = voMsg.imageMessage.caption || ''
-      voMsg.imageMessage.contextInfo?.mentionedJid?.forEach(jid => {
-        if (!mentioned.includes(jid)) mentioned.push(jid)
-      })
-    }
-
-    if (!text && !m.message?.imageMessage && !voMsg?.imageMessage && !m.quoted?.message?.imageMessage) return true
+    if (!text && !m.message?.imageMessage && !m.quoted?.message?.imageMessage) return true
+    
+    // Jangan respon pesan bot sendiri atau command prefix (.)
     if (m.fromMe) return true
     if (/^[./#!]/.test(text)) return true
 
@@ -165,16 +144,8 @@ export async function before(m, { conn }) {
     if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
 
     const chat = global.db.data.chats[m.chat]
+    // Kalau autogpt true ngga aktif di chat ini, lewati
     if (!chat.autogpt || chat.isBanned) return true
-
-    const botJid = conn.user?.jid || conn.user?.id
-    if (!botJid) return true
-    const botNumber = getBareNumber(botJid)
-
-    const isMention = mentioned.some(jid => getBareNumber(jid) === botNumber)
-    const isReplyBot = m.quoted && getBareNumber(m.quoted.sender) === botNumber
-
-    if (!isMention && !isReplyBot) return true
 
     const cleanText = text.replace(/@\d+/g, '').trim()
     if (!cleanText && !m.message?.imageMessage) return true
@@ -186,11 +157,7 @@ export async function before(m, { conn }) {
     try {
       let imageMessage = null
       if (m.message?.imageMessage) imageMessage = m.message.imageMessage
-      else if (voMsg?.imageMessage) imageMessage = voMsg.imageMessage
-      else if (m.quoted) {
-        const qMsg = m.quoted.message || m.quoted.fakeObj?.message
-        if (qMsg?.imageMessage) imageMessage = qMsg.imageMessage
-      }
+      else if (m.quoted?.message?.imageMessage) imageMessage = m.quoted.message.imageMessage
 
       if (imageMessage) {
         let buffer = Buffer.alloc(0)
@@ -260,7 +227,7 @@ cmd({
 
     if (q.toLowerCase() === 'on' || q.toLowerCase() === 'all') {
       global.db.data.chats[from].autogpt = true;
-      return reply("✅ AutoAI berhasil diaktifkan di chat ini!");
+      return reply("✅ AutoAI berhasil diaktifkan di chat ini! Sekarang bot akan membalas semua chat secara otomatis.");
     } else {
       global.db.data.chats[from].autogpt = false;
       return reply("❌ AutoAI berhasil dimatikan di chat ini!");
