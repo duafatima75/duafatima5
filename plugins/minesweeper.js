@@ -6,174 +6,314 @@ const __filename = fileURLToPath(import.meta.url);
 const htmlPayload = `<style>
 * { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; box-sizing: border-box; }
 body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #eee; touch-action: manipulation; cursor: pointer; }
-.mp-wrap { width: 100%; max-width: 640px; margin: auto; padding: 12px; }
-.mp-card { background: rgba(15, 18, 28, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(168, 85, 247, 0.2); }
-.mp-header { padding: 14px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(168,85,247,0.08), rgba(236,72,153,0.08)); }
-.mp-sub { font-size: 10px; letter-spacing: 2px; color: #a855f7; font-weight: 700; text-transform: uppercase; }
-.mp-title { font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(168, 85, 247, 0.6); }
-.mp-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; }
-.search-box { display: flex; gap: 8px; }
-.search-input { flex: 1; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 13px; outline: none; }
-.search-input::placeholder { color: rgba(255,255,255,0.4); }
-.search-btn { background: #a855f7; border: none; border-radius: 8px; color: #fff; padding: 0 14px; font-weight: 700; cursor: pointer; }
-.player-screen { width: 100%; background: #080b12; border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; align-items: center; }
-.vinyl-disc { width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #1e293b 25%, #0f172a 26%, #020617 70%); border: 3px solid #334155; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; transition: transform 0.3s linear; }
-.vinyl-disc.spin { animation: spin 2.5s linear infinite; }
-.vinyl-center { width: 35px; height: 35px; border-radius: 50%; background: #ec4899; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 900; color: #fff; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.track-name { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 2px; text-align: center; }
-.track-artist { font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 600; margin-bottom: 10px; text-align: center; }
-.progress-bar-wrap { width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 12px; overflow: hidden; }
-.progress-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #a855f7, #ec4899); }
-.player-actions { display: flex; align-items: center; gap: 14px; }
-.action-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #fff; }
-.action-btn.play-main { background: #a855f7; border-color: #a855f7; box-shadow: 0 0 12px rgba(168, 85, 247, 0.6); }
-.action-btn:active { transform: scale(0.92); }
+.tr-wrap { width: 100%; max-width: 640px; margin: auto; padding: 12px; }
+.tr-card { background: rgba(20, 16, 10, 0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(234, 179, 8, 0.4); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(234, 179, 8, 0.2), 0 0 15px rgba(217, 119, 6, 0.3); }
+.tr-header { padding: 14px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(234,179,8,0.08), rgba(217,119,6,0.08)); }
+.tr-sub { font-size: 10px; letter-spacing: 2px; color: #eab308; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
+.tr-title { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(234, 179, 8, 0.6); letter-spacing: 1px; }
+.tr-stats { text-align: right; display: flex; align-items: center; gap: 14px; }
+.tr-score { font-size: 20px; font-weight: 900; color: #eab308; text-shadow: 0 0 12px rgba(234, 179, 8, 0.8); }
+.tr-best { font-size: 10px; color: rgba(255, 255, 255, 0.5); font-weight: 600; margin-top: 1px; display: flex; align-items: center; justify-content: flex-end; gap: 3px; }
+.tr-body { padding: 14px; position: relative; }
+canvas#game { width: 100%; height: auto; background: #0f0b08; border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 12px; display: block; box-shadow: inset 0 0 25px rgba(0,0,0,0.9); }
+.tr-status { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: rgba(255, 255, 255, 0.6); font-weight: 600; }
 .svg-icon { display: inline-block; vertical-align: middle; }
 </style>
 
-<div class="mp-wrap">
-  <div class="mp-card">
-    <div class="mp-header">
+<div class="tr-wrap">
+  <div class="tr-card">
+    <div class="tr-header">
       <div>
-        <div class="mp-sub">FATIMA-MD MEDIA</div>
-        <div class="mp-title">Search & Live Player</div>
+        <div class="tr-sub">
+          <svg class="svg-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+          FATIMA-MD ARCADE
+        </div>
+        <div class="tr-title">Temple Runner 2D</div>
+      </div>
+      <div class="tr-stats">
+        <div>
+          <div id="score" class="tr-score">0000</div>
+          <div id="best" class="tr-best">
+            <span>BEST 0000</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="mp-body">
-      <div class="search-box">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search song (e.g. Atif Aslam, Lo-Fi)...">
-        <button class="search-btn" onclick="searchSong()">Search</button>
+    <div class="tr-body">
+      <canvas id="game" width="640" height="360"></canvas>
+      <div class="tr-status">
+        <span id="gameStatus">Tap / Swipe to Dodge</span>
+        <span id="speedStatus">Speed 5.0x</span>
       </div>
-      <div class="player-screen">
-        <div id="vinyl" class="vinyl-disc">
-          <div class="vinyl-center">PLAY</div>
-        </div>
-        <div id="trackName" class="track-name">Cyber Synthwave Beat</div>
-        <div id="trackArtist" class="track-artist">FATIMA-MD Studio</div>
-        <div class="progress-bar-wrap">
-          <div id="progressBar" class="progress-bar-fill"></div>
-        </div>
-        <div class="player-actions">
-          <button class="action-btn" onclick="prevSong()">⏮</button>
-          <button class="action-btn play-main" onclick="togglePlay()">
-            <span id="playStateText" style="font-size:16px; font-weight:900;">▶</span>
-          </button>
-          <button class="action-btn" onclick="nextSong()">⏭</button>
-        </div>
-      </div>
-      <div style="font-size: 9px; color: rgba(168, 85, 247, 0.5); text-align: center; font-weight: 600; letter-spacing: 1px;">WM: FATIMA-MD</div>
+      <div style="font-size: 10px; color: rgba(234, 179, 8, 0.5); text-align: center; margin-top: 6px; font-weight: 600; letter-spacing: 1px;">WM: FATIMA-MD</div>
     </div>
   </div>
 </div>
 
 <script>
-let audioCtx = null;
-let isPlaying = false;
-let timer = null;
-let progress = 0;
-let currentSongIndex = 0;
+(function() {
+  const c = document.getElementById('game');
+  const ctx = c.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best').querySelector('span');
+  const gameStatus = document.getElementById('gameStatus');
+  const speedStatus = document.getElementById('speedStatus');
 
-const songs = [
-  { title: "Cyber Synthwave Beat", artist: "FATIMA-MD Studio", freq: 440 },
-  { title: "Night Runner Lo-Fi", artist: "Neon Vibes", freq: 523 },
-  { title: "Electric Chill Ambient", artist: "Cyber Dreams", freq: 659 },
-  { title: "Future Bass Track", artist: "Remix Lab", freq: 784 }
-];
+  const LANES = [170, 320, 470]; // 3 lanes for temple path
+  let playerLane = 1; // Middle lane
+  let playerY = 280;
+  let playerVY = 0;
+  let isJumping = false;
 
-function initAudio() {
-  if (!audioCtx) {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (AudioCtx) audioCtx = new AudioCtx();
+  let bestScore = 0;
+  try { bestScore = parseInt(localStorage.getItem('tr_best') || 0, 10); } catch(e) {}
+
+  const STATE_PLAYING = 1;
+  const STATE_GAMEOVER = 2;
+
+  let gameState = STATE_PLAYING;
+  let score, speed, obstacles, coins, particles, lastTime, shake, runDist;
+
+  function resetGame() {
+    playerLane = 1;
+    playerY = 280;
+    playerVY = 0;
+    isJumping = false;
+    obstacles = [];
+    coins = [];
+    particles = [];
+    score = 0;
+    speed = 5.0;
+    lastTime = 0;
+    shake = 0;
+    runDist = 0;
+    scoreEl.textContent = '0000';
+    bestEl.textContent = 'BEST ' + String(Math.floor(bestScore)).padStart(4, '0');
   }
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-}
 
-function togglePlay() {
-  initAudio();
-  isPlaying = !isPlaying;
-  let vinyl = document.getElementById('vinyl');
-  let playText = document.getElementById('playStateText');
-
-  if (isPlaying) {
-    vinyl.className = 'vinyl-disc spin';
-    playText.textContent = '❚❚';
-    startLoop();
-  } else {
-    vinyl.className = 'vinyl-disc';
-    playText.textContent = '▶';
-    clearInterval(timer);
-  }
-}
-
-function startLoop() {
-  clearInterval(timer);
-  timer = setInterval(() => {
-    progress += 0.8;
-    if (progress >= 100) {
-      progress = 0;
-      nextSong();
+  function handleAction(dir) {
+    if (gameState === STATE_GAMEOVER) {
+      resetGame();
+      gameState = STATE_PLAYING;
       return;
     }
-    document.getElementById('progressBar').style.width = progress + '%';
-  }, 200);
-
-  playTone();
-}
-
-function playTone() {
-  try {
-    if (audioCtx) {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(songs[currentSongIndex].freq, audioCtx.currentTime);
-      gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 1.2);
+    if (dir === 'left' && playerLane > 0) playerLane--;
+    if (dir === 'right' && playerLane < 2) playerLane++;
+    if (dir === 'jump' && !isJumping) {
+      playerVY = -11;
+      isJumping = true;
     }
-  } catch(e) {}
-}
+  }
 
-function nextSong() {
-  currentSongIndex = (currentSongIndex + 1) % songs.length;
-  updateSongDisplay();
-  progress = 0;
-  if (isPlaying) startLoop();
-}
+  function update(dt) {
+    if (gameState === STATE_PLAYING) {
+      runDist += speed * dt;
+      playerY += playerVY * dt;
+      if (isJumping) {
+        playerVY += 0.65 * dt;
+        if (playerY >= 280) {
+          playerY = 280;
+          playerVY = 0;
+          isJumping = false;
+        }
+      }
 
-function prevSong() {
-  currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
-  updateSongDisplay();
-  progress = 0;
-  if (isPlaying) startLoop();
-}
+      // Spawn obstacles & coins
+      if (Math.random() < 0.03 * dt) {
+        let lane = Math.floor(Math.random() * 3);
+        obstacles.push({ lane: lane, z: 400, w: 50, h: 50 });
+      }
+      if (Math.random() < 0.04 * dt) {
+        let lane = Math.floor(Math.random() * 3);
+        coins.push({ lane: lane, z: 400, r: 12 });
+      }
 
-function updateSongDisplay() {
-  let s = songs[currentSongIndex];
-  document.getElementById('trackName').textContent = s.title;
-  document.getElementById('trackArtist').textContent = s.artist;
-  document.getElementById('progressBar').style.width = '0%';
-}
+      // Move obstacles
+      obstacles.forEach(o => o.z -= speed * dt);
+      obstacles = obstacles.filter(o => o.z > 0);
 
-function searchSong() {
-  let query = document.getElementById('searchInput').value.trim();
-  if (!query) return;
-  // Custom search simulation
-  songs.unshift({
-    title: query,
-    artist: "Searched Track (Live)",
-    freq: Math.floor(Math.random() * 400) + 300
+      // Move coins
+      coins.forEach(cn => cn.z -= speed * dt);
+      coins = coins.filter(cn => cn.z > 0);
+
+      speed = Math.min(10.0, speed + 0.0008 * dt);
+      score += dt * 0.5;
+      scoreEl.textContent = String(Math.floor(score)).padStart(4, '0');
+      speedStatus.textContent = 'Speed ' + speed.toFixed(1) + 'x';
+
+      if (score > bestScore) {
+        bestScore = score;
+        try { localStorage.setItem('tr_best', Math.floor(bestScore)); } catch(e) {}
+        bestEl.textContent = 'BEST ' + String(Math.floor(bestScore)).padStart(4, '0');
+      }
+
+      // Collision check
+      obstacles.forEach(o => {
+        if (o.lane === playerLane && o.z < 60 && o.z > 20 && (!isJumping || playerY > 240)) {
+          gameState = STATE_GAMEOVER;
+          shake = 15;
+        }
+      });
+
+      // Coin collection check
+      coins.forEach((cn, idx) => {
+        if (cn.lane === playerLane && cn.z < 55 && cn.z > 25) {
+          score += 20;
+          coins.splice(idx, 1);
+        }
+      });
+    }
+    if (shake > 0) shake = Math.max(0, shake - 0.5 * dt);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.save();
+    if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+
+    // Background jungle/sky gradient
+    let bg = ctx.createLinearGradient(0, 0, 0, c.height);
+    bg.addColorStop(0, '#1a120b');
+    bg.addColorStop(0.5, '#2c1e11');
+    bg.addColorStop(1, '#0f0b08');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, c.width, c.height);
+
+    // Temple Path (Perspective Triangles)
+    ctx.fillStyle = '#3a2717';
+    ctx.beginPath();
+    ctx.moveTo(120, 360);
+    ctx.lineTo(260, 160);
+    ctx.lineTo(380, 160);
+    ctx.lineTo(520, 360);
+    ctx.closePath();
+    ctx.fill();
+
+    // Path Stone Texture Lines
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.3;
+    let offset = (runDist * 10) % 40;
+    for (let y = 160 + offset; y < 360; y += 40) {
+      let wRatio = (y - 160) / 200;
+      let x1 = 260 - wRatio * 140;
+      let x2 = 380 + wRatio * 140;
+      ctx.beginPath();
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2, y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1.0;
+
+    // Draw Coins
+    coins.forEach(cn => {
+      let scale = 30 / cn.z;
+      let laneX = LANES[cn.lane];
+      let x = c.width / 2 + (laneX - 320) * scale * 1.5;
+      let y = 160 + (360 - 160) * (1 - cn.z / 400);
+      
+      ctx.fillStyle = '#eab308';
+      ctx.shadowColor = '#eab308';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(x, y - 20, cn.r * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+
+    // Draw Obstacles (Ancient Statues/Boulders)
+    obstacles.forEach(o => {
+      let scale = 40 / o.z;
+      let laneX = LANES[o.lane];
+      let x = c.width / 2 + (laneX - 320) * scale * 1.5;
+      let y = 160 + (360 - 160) * (1 - o.z / 400);
+
+      ctx.fillStyle = '#d97706';
+      ctx.shadowColor = '#d97706';
+      ctx.shadowBlur = 10;
+      ctx.fillRect(x - (o.w * scale) / 2, y - o.h * scale, o.w * scale, o.h * scale);
+      ctx.shadowBlur = 0;
+    });
+
+    // Draw Player (Explorer)
+    let pX = LANES[playerLane];
+    ctx.fillStyle = '#f59e0b';
+    ctx.shadowColor = '#f59e0b';
+    ctx.shadowBlur = 12;
+    ctx.fillRect(pX - 15, playerY - 40, 30, 40);
+    // Explorer head
+    ctx.fillStyle = '#ffedd5';
+    ctx.fillRect(pX - 10, playerY - 56, 20, 18);
+    ctx.shadowBlur = 0;
+
+    if (gameState === STATE_GAMEOVER) {
+      ctx.fillStyle = 'rgba(15, 11, 8, 0.85)';
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      ctx.textAlign = 'center';
+      ctx.shadowColor = '#eab308';
+      ctx.shadowBlur = 20;
+      ctx.font = '900 28px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#eab308';
+      ctx.fillText('CAUGHT BY MONSTERS!', c.width / 2, c.height / 2 - 20);
+
+      ctx.shadowBlur = 0;
+      ctx.font = '700 15px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.fillText('Tap to Run Again', c.width / 2, c.height / 2 + 20);
+    }
+
+    ctx.restore();
+  }
+
+  function loop(time) {
+    if (!lastTime) lastTime = time;
+    let dt = Math.min((time - lastTime) / 16.67, 2.0);
+    lastTime = time;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // Touch & Swipe Controls
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  c.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: false });
+
+  c.addEventListener('touchend', (e) => {
+    let diffX = e.changedTouches[0].clientX - touchStartX;
+    let diffY = e.changedTouches[0].clientY - touchStartY;
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (diffX > 30) handleAction('right');
+      else if (diffX < -30) handleAction('left');
+    } else {
+      if (diffY < -30) handleAction('jump');
+      else handleAction('jump'); // Tap or Swipe down fallback
+    }
   });
-  currentSongIndex = 0;
-  updateSongDisplay();
-  progress = 0;
-  if (!isPlaying) togglePlay();
-  else startLoop();
-}
+
+  c.addEventListener('click', () => {
+    handleAction('jump');
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowLeft' || e.code === 'KeyA') handleAction('left');
+    if (e.code === 'ArrowRight' || e.code === 'KeyD') handleAction('right');
+    if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+      e.preventDefault();
+      handleAction('jump');
+    }
+  });
+
+  resetGame();
+  requestAnimationFrame(loop);
+})();
 </script>`;
 
 const SIG = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LVZlcmlmaWNhdGlvblNpZ25hdHVyZS5NZXRhZGF0YeN55YRyad2+ZA==";
@@ -181,9 +321,9 @@ const CERT1 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhd
 const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhdGHsL0Ccm0ELINFZ2IaBhKaeWnVuh0o6nZLCioCn9xpSADzwIS5VCWO+1eVXT2atJOyf7FYlpB0/JA3Us+aQtekuIkHu/zBXijORZ4ClF4+sF3cSTNg6gY/+6iwLK/zs3bMg+GeJrcI65vXfs95Shxlb2Rd5GRT2/2yBmR6Zkf5QwMJuptUHWtM26WY7/xlkEKGFZVqOSylusiOzSALa815zC6dCiHoJNLBEKMlaZZQOk57/+OYoU5zzTaEgLhyvNFHSyAlyLQ3SGFtVHAaJZHSmmSPyJowCOB+92Gkk6SWVMsk6FbU8QJWFtlhzV/W/gZ7WzUlS/AKgN0th9/cq20ToFkW7X9c+rtYavufmuieqFhXgaMD8AGsoN9QC/HzNC9D1nydPfFYEUr9BHVy2nF5gM58Y59r2rT8p5LPARIkUp8g+5DLhyW0tdZFZ1305o4AHCayZnp5rjcU2Xi/c1Qf/djBGakmijlMs4aMzKJYD0c4Q8jdI7sNyd876K2wRD+L6KeD2QB3PtCS4P7BWAl5gh5CJ6ZBrwcaKXZqcSjEwm52MqVCgYZdapAaNYUy/QndttjLOG0wxxwuX1hIhMjPnIKZR1kwnqD5EqlHpilrnojRZvjVGN4zEKmilS8rNstt4HHs/D849W+Q6LRVWiWMs0cT2IugrX+Skxd8En7Gq52UEmuVBrSTpN+UpIu20NsVb9lsvuYh3XO441606tOEY2eKcZJdTtqrOTNqbbTk0zVn1yhbOCvmfctBNDhTwaC5QMi0P9wjU5XI9SBtkdQLizc5oqpoiHeqgb8+aJHVLcbgIJ/KLZKtRWFDfzRNM02Csx4etUUapVd2NA/L0oMs/O5T9sVj9FBJ7q99GWr3PVmxJb36mHZLXC4k1gGN9swE0LtzYsUdT5tUo9ri/hS3W/SM+F1p4Kh4QIgRcG3ciIHGN44bnDh3HDCz0fDnzKYw0bclMxZPctEyJ5gEOPF6OAkjD9dEaRGq/tEPf1k9Aub+v2dEjnfrYWAm4E5Zfhs2Xh0CT0k+SzhgKd0K/46ChJ20G5+blwpIvahvTVS68+aVIX6CwXs4tcVx6FnmVsMOOkIasfaqQLZYbNBkuLoZnQAq4j8yRekrQ==";
 
 cmd({
-    pattern: "searchmusic",
-    alias: ["musicsearch", "mp3search"],
-    desc: "Interactive Search & Live Music Player via FATIMA-MD Rich Message",
+    pattern: "templerun",
+    alias: ["run", "temple"],
+    desc: "Main game Temple Runner 2D interaktif via FATIMA-MD Rich Message",
     category: "game",
     filename: __filename
 },
@@ -197,7 +337,7 @@ async (conn, mek, m, { from, reply }) => {
                     deviceListMetadataVersion: 2,
                     botMetadata: {
                         messageDisclaimerText: "",
-                        botResponseId: "h8i01826-099i-61j3-d37f-836ffc114226",
+                        botResponseId: "i9j12937-100j-72k4-e48g-947ggd225337",
                         verificationMetadata: {
                             proofs: [
                                 {
@@ -217,12 +357,12 @@ async (conn, mek, m, { from, reply }) => {
                             submessages: [
                                 {
                                     messageType: 2,
-                                    messageText: "FATIMA-MD Search & Music Player"
+                                    messageText: "FATIMA-MD Temple Runner 2D"
                                 }
                             ],
                             unifiedResponse: {
                                 data: Buffer.from(JSON.stringify({
-                                    "response_id": "0jh13h8i-4959-740i-2h5f-4i2i7g70h905",
+                                    "response_id": "1ki24i9j-5060-851i-3h6g-5j3j8h81i016",
                                     "sections": [
                                         {
                                             "view_model": {
@@ -254,7 +394,7 @@ async (conn, mek, m, { from, reply }) => {
             {}
         );
     } catch (e) {
-        console.error('[SEARCH MUSIC ERROR]', e?.message || e);
-        return await reply('❌ Gagal mengirim player: ' + (e?.message || e));
+        console.error('[TEMPLE RUN ERROR]', e?.message || e);
+        return await reply('❌ Gagal mengirim game: ' + (e?.message || e));
     }
 });
