@@ -134,7 +134,7 @@ async function askAI(prompt, sessionId = null) {
     const newSessionId = extractSessionId(response.data)
 
     return {
-      reply: reply || "Maaf, sepertinya aku kurang paham atau server sedang sibuk. Bisa ulangi pertanyaannya?",
+      reply: reply || "Halo! Ada yang bisa FATIMA-MD bantu?",
       sessionId: newSessionId || sessionId || null
     }
   } catch (e) {
@@ -157,7 +157,6 @@ export async function before(m, { conn }) {
 
     if (!text && !m.message?.imageMessage && !voMsg?.imageMessage && !m.quoted?.message?.imageMessage) return true
     if (m.fromMe) return true
-
     if (/^[./#!]/.test(text)) return true
 
     if (!global.db) return true
@@ -178,12 +177,7 @@ export async function before(m, { conn }) {
     if (!isMention && !isReplyBot) return true
 
     const cleanText = text.replace(/@\d+/g, '').trim()
-
-    // FIX: Agar pesan pendek seperti "all" atau "on" error/cut-off na de, usko proper prompt bana dein
-    let finalPrompt = cleanText;
-    if (cleanText.toLowerCase() === 'all' || cleanText.toLowerCase() === 'on') {
-      finalPrompt = `Halo, tolong aktifkan atau jelaskan tentang mode ${cleanText}`;
-    }
+    if (!cleanText && !m.message?.imageMessage) return true
 
     let senderName = m.pushName || 'User'
     try { senderName = await conn.getName(m.sender) || 'User' } catch {}
@@ -205,7 +199,7 @@ export async function before(m, { conn }) {
 
         if (buffer.length) {
           const aiVision = new AskMe()
-          const visionResultObj = await aiVision.chat(finalPrompt || 'Jelaskan gambar ini', { image: buffer })
+          const visionResultObj = await aiVision.chat(cleanText || 'Jelaskan gambar ini', { image: buffer })
           if (visionResultObj?.msg) imageContext = `\nHASIL ANALISIS GAMBAR:\n${visionResultObj.msg}\n`
         }
       }
@@ -220,7 +214,7 @@ export async function before(m, { conn }) {
 ${SYSTEM_PROMPT}
 ${imageContext}
 User (${senderName}):
-${finalPrompt || '[User mengirim gambar]'}
+${cleanText || '[User mengirim gambar]'}
 
 FATIMA-MD:
 `.trim()
@@ -232,12 +226,12 @@ FATIMA-MD:
     if (!reply) return true
 
     await sleep(400)
-    session.history.push(`User: ${finalPrompt}`)
+    session.history.push(`User: ${cleanText}`)
     session.history.push(`FATIMA-MD: ${reply}`)
 
     global.aiSessions[sid] = {
       history: session.history.slice(-8),
-      lastTopic: finalPrompt || '[Gambar]',
+      lastTopic: cleanText || '[Gambar]',
       neoSessionId: aiResult?.sessionId || session.neoSessionId
     }
 
@@ -253,14 +247,34 @@ cmd({
   alias: ["aiimage", "vision"],
   desc: "Auto AI Gemini & Vision Support",
   category: "ai",
-}, async (conn, mek, m, { q, reply }) => {
-  if (!q && !m.quoted) return reply("Ketik pertanyaan atau reply gambar dengan caption .autoai");
+}, async (conn, mek, m, { q, reply, from }) => {
+  if (!q && !m.quoted && !m.message?.imageMessage) {
+    return reply("Ketik perintah:\n- `.autoai on` untuk mengaktifkan\n- `.autoai off` untuk mematikan\n- Atau ketik pertanyaan / reply gambar dengan caption `.autoai`");
+  }
+
+  // Handle setting on / off secara local agar tidak error ke API
+  if (q && (q.toLowerCase() === 'on' || q.toLowerCase() === 'off' || q.toLowerCase() === 'all')) {
+    if (!global.db.data.chats[from]) global.db.data.chats[from] = {}
+    if (q.toLowerCase() === 'on' || q.toLowerCase() === 'all') {
+      global.db.data.chats[from].autogpt = true;
+      return reply("✅ AutoAI berhasil diaktifkan di chat ini!");
+    } else {
+      global.db.data.chats[from].autogpt = false;
+      return reply("❌ AutoAI berhasil dimatikan di chat ini!");
+    }
+  }
+
   try {
     await conn.sendPresenceUpdate('composing', m.chat);
     let prompt = q || "Jelaskan gambar ini";
     let imageBuffer = null;
 
-    if (m.quoted && m.quoted.message?.imageMessage) {
+    if (m.message?.imageMessage) {
+      const stream = await downloadContentFromMessage(m.message.imageMessage, 'image');
+      let buffer = Buffer.alloc(0);
+      for await (const chunk of stream) { buffer = Buffer.concat([buffer, chunk]); }
+      imageBuffer = buffer;
+    } else if (m.quoted && m.quoted.message?.imageMessage) {
       const stream = await downloadContentFromMessage(m.quoted.message.imageMessage, 'image');
       let buffer = Buffer.alloc(0);
       for await (const chunk of stream) { buffer = Buffer.concat([buffer, chunk]); }
