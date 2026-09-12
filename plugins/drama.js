@@ -1,4 +1,4 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - FIXED IN-CARD HTML AUDIO PLAYER
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ULTIMATE INTERACTIVE HTML MUSIC CARD
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -14,9 +14,9 @@ const CERT1 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhd
 const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhdGHsL0Ccm0ELINFZ2IaBhKaeWnVuh0o6nZLCioCn9xpSADzwIS5VCWO+1eVXT2atJOyf7FYlpB0/JA3Us+aQtekuIkHu/zBXijORZ4ClF4+sF3cSTNg6gY/+6iwLK/zs3bMg+GeJrcI65vXfs95Shxlb2Rd5GRT2/2yBmR6Zkf5QwMJuptUHWtM26WY7/xlkEKGFZVqOSylusiOzSALa815zC6dCiHoJNLBEKMlaZZQOk57/+OYoU5zzTaEgLhyvNFHSyAlyLQ3SGFtVHAaJZHSmmSPyJowCOB+92Gkk6SWVMsk6FbU8QJWFtlhzV/W/gZ7WzUlS/AKgN0th9/cq20ToFkW7X9c+rtYavufmuieqFhXgaMD8AGsoN9QC/HzNC9D1nydPfFYEUr9BHVy2nF5gM58Y59r2rT8p5LPARIkUp8g+5DLhyW0tdZFZ1305o4AHCayZnp5rjcU2Xi/c1Qf/djBGakmijlMs4aMzKJYD0c4Q8jdI7sNyd876K2wRD+L6KeD2QB3PtCS4P7BWAl5gh5CJ6ZBrwcaKXZqcSjEwm52MqVCgYZdapAaNYUy/QndttjLOG0wxxwuX1hIhMjPnIKZR1kwnqD5EqlHpilrnojRZvjVGN4zEKmilS8rNstt4HHs/D849W+Q6LRVWiWMs0cT2IugrX+Skxd8En7Gq52UEmuVBrSTpN+UpIu20NsVb9lsvuYh3XO441606tOEY2eKcZJdTtqrOTNqbbTk0zVn1yhbOCvmfctBNDhTwaC5QMi0P9wjU5XI9SBtkdQLizc5oqpoiHeqgb8+aJHVLcbgIJ/KLZKtRWFDfzRNM02Csx4etUUapVd2NA/L0oMs/O5T9sVj9FBJ7q99GWr3PVmxJb36mHZLXC4k1gGN9swE0LtzYsUdT5tUo9ri/hS3W/SM+F1p4Kh4QIgRcG3ciIHGN44bnDh3HDCz0fDnzKYw0bclMxZPctEyJ5gEOPF6OAkjD9dEaRGq/tEPf1k9Aub+v2dEjnfrYWAm4E5Zfhs2Xh0CT0k+SzhgKd0K/46ChJ20G5+blwpIvahvTVS68+aVIX6CwXs4tcVx6FnmVsMOOkIasfaqQLZYbNBkuLoZnQAq4j8yRekrQ==";
 
 cmd({
-    pattern: "play75",
-    alias: ["ytplay65", "song54", "plays"],
-    desc: "Search and play songs with stable HTML card audio player",
+    pattern: "play",
+    alias: ["ytplay", "song", "plays"],
+    desc: "Search and play songs with immersive HTML card player",
     category: "downloader",
     react: "🎵",
     filename: __filename
@@ -55,11 +55,6 @@ cmd({
         const author = info.author || 'Unknown Artist';
         const displayTitle = title.length > 28 ? title.substring(0, 25) + '...' : title;
 
-        if (!audioUrl) {
-            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-            return reply("❌ Failed to retrieve the MP3 download link from the API response.");
-        }
-
         let fileSizeMB = "3.8 MB";
         try {
             const headRes = await axios.head(audioUrl);
@@ -78,15 +73,20 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
 .aud-sub { font-size: 10px; letter-spacing: 2px; color: #00f3ff; font-weight: 700; text-transform: uppercase; }
 .aud-title-top { font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.6); }
 .aud-body { padding: 16px; display: flex; gap: 14px; align-items: center; }
-.aud-thumb-box { position: relative; width: 70px; height: 70px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 12px rgba(0,243,255,0.3); flex-shrink: 0; background: #000; }
+.aud-thumb-box { position: relative; width: 75px; height: 75px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 12px rgba(0,243,255,0.3); flex-shrink: 0; background: #000; }
 .aud-thumb { width: 100%; height: 100%; object-fit: cover; }
 .aud-info { flex: 1; overflow: hidden; }
 .song-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 6px rgba(255,255,255,0.3); }
 .song-detail { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-bottom: 3px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.aud-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 16px; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
+.aud-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 16px; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 10px; }
 .badge-size { background: rgba(255, 0, 127, 0.15); border: 1px solid rgba(255, 0, 127, 0.4); color: #ff007f; padding: 2px 8px; border-radius: 12px; font-weight: 800; font-size: 10px; }
-.play-btn-card { background: linear-gradient(135deg, rgba(0,243,255,0.25), rgba(255,0,127,0.25)); border: 1px solid rgba(0,243,255,0.5); color: #fff; padding: 10px; border-radius: 12px; font-weight: 900; font-size: 12px; text-align: center; cursor: pointer; text-shadow: 0 0 8px rgba(0,243,255,0.8); box-shadow: 0 4px 15px rgba(0,0,0,0.4); letter-spacing: 1px; display: block; text-decoration: none; }
-.play-btn-card:active { transform: scale(0.97); }
+.player-box { background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.3); border-radius: 12px; padding: 10px; display: flex; align-items: center; justify-content: space-between; }
+.play-action-btn { background: linear-gradient(135deg, #00f3ff, #ff007f); color: #fff; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 900; font-size: 11px; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px rgba(0,243,255,0.5); text-decoration: none; display: inline-block; text-align: center; }
+.wave-anim { display: flex; gap: 3px; align-items: center; height: 14px; }
+.wave-line { width: 3px; background: #00ff87; border-radius: 2px; animation: pulse 1s infinite alternate; }
+.wave-line:nth-child(2) { animation-delay: 0.2s; background: #00f3ff; }
+.wave-line:nth-child(3) { animation-delay: 0.4s; background: #ff007f; }
+@keyframes pulse { 0% { height: 4px; } 100% { height: 16px; } }
 .footer-info { display: flex; justify-content: space-between; align-items: center; font-size: 11px; width: 100%; }
 </style>
 
@@ -94,8 +94,8 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
   <div class="aud-card">
     <div class="aud-header">
       <div>
-        <div class="aud-sub">FATIMA-MD STABLE PLAYER</div>
-        <div class="aud-title-top">Playing Music 🎵</div>
+        <div class="aud-sub">FATIMA-MD MEDIA PLAYER</div>
+        <div class="aud-title-top">Immersive Audio 🎵</div>
       </div>
       <div>
         <span class="badge-size">${fileSizeMB}</span>
@@ -109,53 +109,26 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
         <div class="song-title" title="${title}">${displayTitle}</div>
         <div class="song-detail">👤 <b>Artist:</b> ${author}</div>
         <div class="song-detail">⏱️ <b>Duration:</b> ${duration}</div>
-        <div class="song-detail">🚀 <b>Status:</b> <span id="statusText" style="color:#00ff87;">Ready to Play</span></div>
+        <div class="song-detail">🚀 <b>Status:</b> Ready inside card</div>
       </div>
     </div>
     <div class="aud-footer">
-      <audio id="cardAudio" src="${audioUrl}" crossorigin="anonymous" preload="auto"></audio>
-      <a href="${audioUrl}" target="_blank" class="play-btn-card" id="playBtn" onclick="tryPlay(event)">▶ PLAY / STREAM AUDIO</a>
+      <div class="player-box">
+        <div class="wave-anim">
+          <div class="wave-line"></div>
+          <div class="wave-line"></div>
+          <div class="wave-line"></div>
+        </div>
+        <span style="font-size: 11px; font-weight: 800; color: #00ff87;">HQ STREAM ACTIVE</span>
+        <a href="${audioUrl}" target="_blank" class="play-action-btn">▶ PLAY / OPEN</a>
+      </div>
       <div class="footer-info">
         <span style="color: rgba(255,255,255,0.6); font-weight: 600;">⚡ Version: <b>12.00</b></span>
         <span style="color: #ff007f; font-weight: 700;">👑 Powered by FATIMA-MD</span>
       </div>
     </div>
   </div>
-</div>
-
-<script>
-  const audio = document.getElementById('cardAudio');
-  const btn = document.getElementById('playBtn');
-  const status = document.getElementById('statusText');
-
-  function tryPlay(e) {
-    if (audio.paused) {
-      e.preventDefault();
-      status.innerText = "Buffering...";
-      audio.play().then(() => {
-        btn.innerText = "⏸ PAUSE AUDIO";
-        status.innerText = "Playing Live...";
-        status.style.color = "#00f3ff";
-      }).catch(err => {
-        // Fallback to direct link if inline play fails due to browser restrictions
-        status.innerText = "Opening Stream...";
-        window.open(audio.src, '_blank');
-      });
-    } else {
-      e.preventDefault();
-      audio.pause();
-      btn.innerText = "▶ PLAY / STREAM AUDIO";
-      status.innerText = "Paused";
-      status.style.color = "#ff007f";
-    }
-  }
-
-  audio.onended = function() {
-    btn.innerText = "▶ PLAY / STREAM AUDIO";
-    status.innerText = "Finished";
-    status.style.color = "#00ff87";
-  };
-</script>`;
+</div>`;
 
         const responseId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
         const responseData = {
@@ -196,7 +169,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
                 message: {
                     richResponseMessage: {
                         messageType: 1,
-                        submessages: [{ messageType: 2, messageText: "FATIMA-MD Fixed Audio Player" }],
+                        submessages: [{ messageType: 2, messageText: "FATIMA-MD Music Card" }],
                         unifiedResponse: { data: dataBase64 },
                         contextInfo: {
                             forwardingScore: 999,
