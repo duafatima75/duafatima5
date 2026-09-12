@@ -35,7 +35,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply, usedP
 
         const tiktokUrl = urlMatch[0];
 
-        if (!tiktokUrl.includes('tiktok.com')) {
+        if (!tiktokUrl.includes('tiktok.com') && !tiktokUrl.includes('vt.tiktok.com')) {
             await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
             return reply("❌ *Please provide a valid TikTok URL.*");
         }
@@ -46,15 +46,16 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply, usedP
         const apiUrl = `https://omegatech-api.dixonomega.tech/api/Fun/Tiktok-booster?action=boost&url=${encodeURIComponent(tiktokUrl)}`;
         
         const response = await axios.get(apiUrl, {
-            timeout: 30000
+            timeout: 30000,
+            validateStatus: () => true // Prevent axios from throwing on non-2xx status codes
         });
 
-        if (!response.data.success) {
-            throw new Error('API request failed');
+        if (!response.data || !response.data.success) {
+            throw new Error(response.data?.message || 'API server se koi sahi response nahi mila ya server down hai.');
         }
 
-        const data = response.data.data;
-        const timestamp = new Date(response.data.timestamp).toLocaleString();
+        const data = response.data.data || {};
+        const timestamp = response.data.timestamp ? new Date(response.data.timestamp).toLocaleString() : new Date().toLocaleString();
 
         const successBox = `
 ╔════════════════════════╗
@@ -89,9 +90,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply, usedP
         let errorMsg = '❌ *Failed to boost TikTok video*\n\n';
         if (error.response) {
             errorMsg += `📌 Status: ${error.response.status}\n`;
-            errorMsg += `📌 Error: ${error.response.data?.message || 'Unknown error'}`;
-        } else if (error.request) {
-            errorMsg += `📌 No response from server. Please try again later.`;
+            errorMsg += `📌 Error: ${error.response.data?.message || 'Server error or invalid endpoint'}`;
         } else {
             errorMsg += `📌 Error: ${error.message}`;
         }
