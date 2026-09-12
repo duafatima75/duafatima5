@@ -1,4 +1,4 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ADVANCED EMBEDDED HTML MUSIC PLAYER WITH SIZE & DIRECT PLAY
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - INTERACTIVE HTML AUDIO PLAYER WITH CUSTOM PLAY BUTTON
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -16,7 +16,7 @@ const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhd
 cmd({
     pattern: "play",
     alias: ["ytplay", "song", "plays"],
-    desc: "Search and play songs with advanced embedded HTML player and file size",
+    desc: "Search and play songs with optimized HTML media card",
     category: "downloader",
     react: "🎵",
     filename: __filename
@@ -60,7 +60,6 @@ cmd({
             return reply("❌ Failed to retrieve the MP3 download link from the API response.");
         }
 
-        // Fetch audio file size (MB) dynamically
         let fileSizeMB = "3.8 MB";
         try {
             const headRes = await axios.head(audioUrl);
@@ -68,9 +67,7 @@ cmd({
             if (contentLength) {
                 fileSizeMB = (contentLength / (1024 * 1024)).toFixed(2) + " MB";
             }
-        } catch (e) {
-            // fallback size if head request fails
-        }
+        } catch (e) {}
 
         const htmlPayload = `<style>
 * { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
@@ -86,10 +83,9 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
 .aud-info { flex: 1; overflow: hidden; }
 .song-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 6px rgba(255,255,255,0.3); }
 .song-detail { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-bottom: 3px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.aud-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 16px; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
-.native-player { width: 100%; height: 36px; border-radius: 8px; filter: invert(0.9) hue-rotate(180deg); }
-.footer-info { display: flex; justify-content: space-between; align-items: center; font-size: 11px; width: 100%; }
+.aud-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 16px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
 .badge-size { background: rgba(255, 0, 127, 0.15); border: 1px solid rgba(255, 0, 127, 0.4); color: #ff007f; padding: 2px 8px; border-radius: 12px; font-weight: 800; font-size: 10px; }
+.open-btn { background: linear-gradient(135deg, rgba(0,243,255,0.2), rgba(255,0,127,0.2)); border: 1px solid rgba(0,243,255,0.4); color: #fff; padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 11px; text-decoration: none; display: inline-block; text-shadow: 0 0 6px rgba(0,243,255,0.6); }
 </style>
 
 <div class="aud-wrap">
@@ -97,7 +93,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
     <div class="aud-header">
       <div>
         <div class="aud-sub">FATIMA-MD MEDIA PLAYER</div>
-        <div class="aud-title-top">Playing Online 🎵</div>
+        <div class="aud-title-top">Audio Ready 🎵</div>
       </div>
       <div>
         <span class="badge-size">${fileSizeMB}</span>
@@ -105,24 +101,18 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
     </div>
     <div class="aud-body">
       <div class="aud-thumb-box">
-        <img src="${thumbnail}" class="aud-thumb" alt="Thumbnail" crossorigin="anonymous">
+        <img src="${thumbnail}" class="aud-thumb" alt="Thumbnail">
       </div>
       <div class="aud-info">
         <div class="song-title" title="${title}">${displayTitle}</div>
         <div class="song-detail">👤 <b>Artist:</b> ${author}</div>
         <div class="song-detail">⏱️ <b>Duration:</b> ${duration}</div>
-        <div class="song-detail">🚀 <b>Status:</b> Downloaded & Ready</div>
+        <div class="song-detail">🚀 <b>Status:</b> Ready to Listen</div>
       </div>
     </div>
     <div class="aud-footer">
-      <audio controls class="native-player" preload="metadata">
-        <source src="${audioUrl}" type="audio/mp4">
-        Your browser does not support the audio element.
-      </audio>
-      <div class="footer-info">
-        <span style="color: rgba(255,255,255,0.6); font-weight: 600;">⚡ Version: <b>12.00</b></span>
-        <span style="color: #ff007f; font-weight: 700;">👑 Powered by FATIMA-MD</span>
-      </div>
+      <a href="${audioUrl}" target="_blank" class="open-btn">▶ OPEN / PLAY AUDIO</a>
+      <span style="color: #ff007f; font-weight: 700;">👑 Powered by FATIMA-MD</span>
     </div>
   </div>
 </div>`;
@@ -166,7 +156,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
                 message: {
                     richResponseMessage: {
                         messageType: 1,
-                        submessages: [{ messageType: 2, messageText: "FATIMA-MD Embedded Music Player" }],
+                        submessages: [{ messageType: 2, messageText: "FATIMA-MD Audio Player" }],
                         unifiedResponse: { data: dataBase64 },
                         contextInfo: {
                             forwardingScore: 999,
@@ -184,6 +174,23 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
                 }
             }
         }, { messageId: responseId, quoted: mek });
+
+        // Saath hi real WhatsApp audio message bhi bhej rahe hain taaki agar koi chat se play karna chahe toh wahan bhi available ho
+        await conn.sendMessage(from, {
+            audio: { url: audioUrl },
+            mimetype: 'audio/mp4',
+            ptt: false,
+            contextInfo: {
+                mentionedJid: [sender],
+                forwardingScore: 999,
+                isForwarded: true,
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363412031212190@newsletter',
+                    newsletterName: "ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ",
+                    serverMessageId: 428
+                }
+            }
+        }, { quoted: mek });
 
         await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
 
