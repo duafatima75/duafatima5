@@ -1,4 +1,4 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - HTML VIDEO / DRAMA DOWNLOADER
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - HTML VIDEO / DRAMA DOWNLOADER WITH HTML RESPONSE
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -122,7 +122,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
         const jsonString = JSON.stringify(responseData);
         const dataBase64 = Buffer.from(jsonString).toString('base64');
 
-        const sentMsg = await sock.relayMessage(message.chat, {
+        await sock.relayMessage(message.chat, {
             messageContextInfo: {
                 deviceListMetadata: {},
                 deviceListMetadataVersion: 2,
@@ -162,8 +162,6 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
             }
         }, { messageId: responseId, quoted: message });
 
-        const branding = "👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*";
-
         const listener = async (chatUpdate) => {
             const msg = chatUpdate.messages[0];
             if (!msg.message?.extendedTextMessage) return;
@@ -194,16 +192,115 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
                 await sock.sendMessage(message.chat, {
                     document: buffer,
                     mimetype: "video/mp4",
-                    fileName: `${videoTitle}.mp4`,
-                    caption: `📂 *${videoTitle}*\n\n${branding}`
+                    fileName: `${videoTitle}.mp4`
                 }, { quoted: msg });
             } else if (selectedText === "2") {
                 await sock.sendMessage(message.chat, {
                     video: buffer,
-                    mimetype: "video/mp4",
-                    caption: `🎬 *${videoTitle}*\n\n${branding}`
+                    mimetype: "video/mp4"
                 }, { quoted: msg });
             }
+
+            // HTML Success Response Card when sending media
+            const successHtml = `<style>
+* { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
+body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #eee; }
+.succ-wrap { width: 100%; max-width: 520px; margin: auto; padding: 12px; }
+.succ-card { background: rgba(15, 18, 28, 0.94); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(0, 255, 135, 0.35); border-radius: 18px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 255, 135, 0.2), 0 0 20px rgba(0, 243, 255, 0.25); }
+.succ-header { padding: 14px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,255,135,0.1), rgba(0,243,255,0.1)); }
+.succ-sub { font-size: 10px; letter-spacing: 2px; color: #00ff87; font-weight: 700; text-transform: uppercase; }
+.succ-title-top { font-size: 19px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 255, 135, 0.6); letter-spacing: 1px; }
+.succ-body { padding: 16px; display: flex; gap: 14px; align-items: center; }
+.succ-thumb { width: 100px; height: 100px; border-radius: 12px; object-fit: cover; border: 2px solid rgba(0, 255, 135, 0.4); box-shadow: 0 0 12px rgba(0,255,135,0.3); flex-shrink: 0; }
+.succ-info { flex: 1; overflow: hidden; }
+.song-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 6px rgba(255,255,255,0.3); }
+.song-detail { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-bottom: 4px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.succ-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 18px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+</style>
+
+<div class="succ-wrap">
+  <div class="succ-card">
+    <div class="succ-header">
+      <div>
+        <div class="succ-sub">FATIMA-MD SUCCESS</div>
+        <div class="succ-title-top">Download Complete ✅</div>
+      </div>
+      <div>
+        <span style="background: rgba(0,255,135,0.15); border: 1px solid rgba(0,255,135,0.4); color: #00ff87; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 10px;">SUCCESS</span>
+      </div>
+    </div>
+    <div class="succ-body">
+      <img src="${thumbnail}" class="succ-thumb" alt="Thumbnail">
+      <div class="succ-info">
+        <div class="song-title" title="${videoTitle}">${displayTitle}</div>
+        <div class="song-detail">📁 <b>Type:</b> ${selectedText === "1" ? 'Document File (.mp4)' : 'Video Stream'}</div>
+        <div class="song-detail">🚀 <b>Status:</b> Successfully Sent</div>
+        <div class="song-detail">📺 <b>Channel:</b> ${video.author.name}</div>
+      </div>
+    </div>
+    <div class="succ-footer">
+      <span style="color: rgba(255,255,255,0.6); font-weight: 600;">⚡ Version: <b>12.00</b></span>
+      <span style="color: #ff007f; font-weight: 700;">👑 Powered by FATIMA-MD</span>
+    </div>
+  </div>
+</div>`;
+
+            const succId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+            const succData = {
+                response_id: succId,
+                sections: [{
+                    view_model: {
+                        primitive: {
+                            __typename: "GenAIaeacdsnwHtmlPrimitive",
+                            payload: successHtml,
+                            trusted_sources: ["fatimamv.dev"]
+                        },
+                        __typename: "GenAISingleLayoutViewModel"
+                    }
+                }]
+            };
+
+            const succBase64 = Buffer.from(JSON.stringify(succData)).toString('base64');
+
+            await sock.relayMessage(message.chat, {
+                messageContextInfo: {
+                    deviceListMetadata: {},
+                    deviceListMetadataVersion: 2,
+                    botMetadata: {
+                        messageDisclaimerText: "",
+                        botResponseId: succId,
+                        verificationMetadata: {
+                            proofs: [{
+                                version: 1,
+                                useCase: 1,
+                                signature: SIG,
+                                certificateChain: [CERT1, CERT2]
+                            }]
+                        }
+                    }
+                },
+                botForwardedMessage: {
+                    message: {
+                        richResponseMessage: {
+                            messageType: 1,
+                            submessages: [{ messageType: 2, messageText: "FATIMA-MD Download Success" }],
+                            unifiedResponse: { data: succBase64 },
+                            contextInfo: {
+                                forwardingScore: 999,
+                                isForwarded: true,
+                                forwardedAiBotMessageInfo: { botJid: "867051314767696@bot" },
+                                forwardOrigin: 4,
+                                mentionedJid: [message.sender],
+                                forwardedNewsletterMessageInfo: { 
+                                    newsletterJid: '120363412031212190@newsletter', 
+                                    newsletterName: 'ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ', 
+                                    serverMessageId: 428 
+                                }
+                            }
+                        }
+                    }
+                }
+            }, { messageId: succId, quoted: msg });
 
             await sock.sendMessage(message.chat, { 
                 react: { text: "✅", key: msg.key } 
