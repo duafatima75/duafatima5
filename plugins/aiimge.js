@@ -1,266 +1,154 @@
-/*
-📌 Nama Fitur : Autoai api x scrape support image 
-🏷️ Type       : Plugin ESM
-🤖 Chat AI    : FATIMA-MD Gemini / AskMe Vision
-*/
-
-import axios from 'axios'
-import fs from 'fs'
-import { randomUUID } from 'crypto'
+import crypto from 'crypto'
+import { generateWAMessageFromContent } from '@whiskeysockets/baileys'
 import { cmd } from '../command.js'
 
-const { downloadContentFromMessage } = await import('@itsliaaa/baileys')
+let handler = async (conn, mek, m, { from, reply }) => {
+    let user = global.db.data.users[m.sender]
+    let entryFee = 50
 
-if (!global.aiSessions) global.aiSessions = {}
-if (!global.groupContext) global.groupContext = {}
-
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
-
-class AskMe {
-  constructor() {
-    this.askmeUrl = "https://askme.matlubapps.com/ask-me";
-    this.askmeKey = "ak8asda9$5kpq";
-    this.askmeModel = "gpt_4__1_nano";
-    this.history = [];
-  }
-
-  async resolveMedia(input) {
-    if (!input) return "";
-    if (Buffer.isBuffer(input)) return input.toString("base64");
-    
-    if (typeof input === "string") {
-      if (input.startsWith("http://") || input.startsWith("https://")) {
-        const { data } = await axios.get(input, { 
-          responseType: "arraybuffer", 
-          timeout: 30000 
-        });
-        return Buffer.from(data).toString("base64");
-      }
-      if (input.startsWith("data:")) return input.split(",")[1];
-      if (fs.existsSync(input)) return fs.readFileSync(input).toString("base64");
-      return input;
+    if (user.money < entryFee) {
+        return reply(`Maaf, uang kamu tidak cukup untuk masuk ke Cyber Grid. Kamu butuh minimal ${entryFee} money.\n\nUangmu saat ini: ${user.money}`)
     }
-    return "";
-  }
 
-  async chatImage(prompt, image) {
-    const b64 = await this.resolveMedia(image);
-    if (!b64) throw new Error("Gambar gagal dikonversi ke base64");
+    user.money -= entryFee
+    await reply(`Membuka Terminal KAMRAN-MD Cyber Grid... (Biaya akses -${entryFee} money)\n\nSisa uangmu: ${user.money}`)
 
-    this.history.push({ role: "user", content: prompt, data: b64 });
+    const htmlPayload = `<html><head><style>
+*{box-sizing:border-box}
+body{margin:0;padding:10px;background:#05050a;color:#00ffcc;font-family:'Courier New',monospace;overflow:hidden;text-align:center}
+.container{max-width:360px;margin:0 auto;background:#0b0b16;border:2px solid #00ffcc;border-radius:12px;padding:12px;box-shadow:0 0 20px rgba(0,255,204,0.3)}
+h2{margin:0 0 5px;font-size:18px;color:#ff0055;text-shadow:0 0 8px #ff0055}
+.info{font-size:11px;color:#8a8ab0;margin-bottom:10px}
+.stats{display:flex;justify-content:space-between;margin-bottom:10px;font-size:12px;background:#121224;padding:6px;border-radius:6px;border:1px solid #1f1f3f}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.node{aspect-ratio:1;background:#151530;border:1px solid #00ffcc44;border-radius:6px;font-size:20px;cursor:pointer;display:grid;place-items:center;transition:0.2s}
+.node:active{transform:scale(0.92)}
+.node.active{background:#00ffcc;box-shadow:0 0 12px #00ffcc;color:#05050a}
+.node.bad{background:#ff0055;border-color:#ff0055;box-shadow:0 0 12px #ff0055}
+.btn{width:100%;padding:10px;background:#ff0055;border:none;color:#fff;font-weight:bold;border-radius:6px;cursor:pointer;text-shadow:0 0 5px #000}
+.btn:disabled{background:#333;color:#777;cursor:not-allowed}
+</style></head><body>
+<div class="container">
+  <h2>KAMRAN-MD CYBER GRID</h2>
+  <div class="info">Hack node hijau, hindari virus merah!</div>
+  <div class="stats">
+    <div>SCORE: <b id="score">0</b></div>
+    <div>WAKTU: <b id="timer">15</b>s</div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <button class="btn" id="startBtn">MULAI HACKING</button>
+</div>
+<script>
+let score = 0, timeLeft = 15, timerId = null, playing = false, activeIdx = -1, isBad = false;
+const gridEl = document.getElementById('grid'), scoreEl = document.getElementById('score'), timerEl = document.getElementById('timer'), startBtn = document.getElementById('startBtn');
 
-    const { data } = await axios.post(
-      this.askmeUrl, 
-      { history: this.history, isPremium: false, modelname: this.askmeModel }, 
-      { headers: { "Content-Type": "application/json", key: this.askmeKey }, timeout: 60000 }
-    );
-
-    const reply = data?.msg || data?.text || data?.result?.answer || data?.result;
-    if (!reply) throw new Error("Empty response from server");
-
-    this.history.push({ role: "assistant", content: String(reply), data: "" });
-    return { code: 200, msg: String(reply), source: "askme" };
-  }
-
-  async chat(prompt, { image } = {}) {
-    if (image) return this.chatImage(prompt || "deskripsikan gambar ini", image);
-    return null;
-  }
+for(let i=0; i<16; i++) {
+    let cell = document.createElement('div');
+    cell.className = 'node';
+    cell.dataset.id = i;
+    cell.onclick = () => handleTap(i);
+    gridEl.appendChild(cell);
 }
 
-const SYSTEM_PROMPT = `
-Kamu adalah FATIMA-MD, AI asisten pintar di bot WhatsApp yang ramah, santai, dan membantu.
-`.trim()
-
-function getBareNumber(jid = '') {
-  return String(jid).split('@')[0].split(':')[0]
+function startGame() {
+    score = 0; timeLeft = 15; playing = true;
+    scoreEl.textContent = score;
+    timerEl.textContent = timeLeft;
+    startBtn.disabled = true;
+    startBtn.textContent = "HACKING BERLANGSUNG...";
+    nextRound();
+    timerId = setInterval(() => {
+        timeLeft--;
+        timerEl.textContent = timeLeft;
+        if(timeLeft <= 0) endGame();
+    }, 1000);
 }
 
-function extractAIReply(data) {
-  if (data == null) return null
-  if (typeof data === 'string') return data.trim() || null
-
-  const candidates = [
-    data.answer, data.text, data.msg, data.response, data.reply,
-    data.result?.answer, data.result?.text, data.result?.msg, data.result?.response, data.result?.reply,
-    data.data?.answer, data.data?.text, data.data?.msg, data.data?.response, data.data?.reply
-  ]
-
-  for (const value of candidates) {
-    if (typeof value === 'string' && value.trim()) return value.trim()
-  }
-  return null
-}
-
-function extractSessionId(data) {
-  if (!data || typeof data !== 'object') return null
-  return data.sessionId || data.session_id || data.sid || data.result?.sessionId || null
-}
-
-async function askAI(prompt, sessionId = null) {
-  try {
-    const params = { text: prompt }
-    if (sessionId) params.sessionId = sessionId
-
-    const response = await axios.get(
-      'https://api.neosoft.best/api/ai/gemini',
-      {
-        params,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/151.0.0.0 Mobile Safari/537.36',
-          Accept: 'application/json, text/plain, */*'
-        },
-        timeout: 60000,
-        validateStatus: status => status >= 200 && status < 500
-      }
-    )
-
-    if (response.status >= 400) return { reply: null, sessionId: null }
-
-    const reply = extractAIReply(response.data)
-    const newSessionId = extractSessionId(response.data)
-
-    return {
-      reply: reply || "Halo! Ada yang bisa FATIMA-MD bantu?",
-      sessionId: newSessionId || sessionId || null
+function nextRound() {
+    if(!playing) return;
+    document.querySelectorAll('.node').forEach(n => { n.className = 'node'; n.textContent = ''; });
+    activeIdx = Math.floor(Math.random() * 16);
+    isBad = Math.random() < 0.35;
+    let node = gridEl.children[activeIdx];
+    if(isBad) {
+        node.classList.add('bad');
+        node.textContent = '❌';
+    } else {
+        node.classList.add('active');
+        node.textContent = '🟢';
     }
-  } catch (e) {
-    return { reply: null, sessionId: null }
-  }
 }
 
-export async function before(m, { conn }) {
-  try {
-    let text = m.text || m.caption || m.message?.conversation || m.message?.extendedTextMessage?.text || ''
-    if (!text && !m.message?.imageMessage && !m.quoted?.message?.imageMessage) return true
-    
-    // Jangan respon pesan bot sendiri atau command prefix (.)
-    if (m.fromMe) return true
-    if (/^[./#!]/.test(text)) return true
-
-    if (!global.db) global.db = {}
-    if (!global.db.data) global.db.data = {}
-    if (!global.db.data.chats) global.db.data.chats = {}
-    if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
-
-    const chat = global.db.data.chats[m.chat]
-    // Kalau autogpt true ngga aktif di chat ini, lewati
-    if (!chat.autogpt || chat.isBanned) return true
-
-    const cleanText = text.replace(/@\d+/g, '').trim()
-    if (!cleanText && !m.message?.imageMessage) return true
-
-    let senderName = m.pushName || 'User'
-    try { senderName = await conn.getName(m.sender) || 'User' } catch {}
-
-    let imageContext = ''
-    try {
-      let imageMessage = null
-      if (m.message?.imageMessage) imageMessage = m.message.imageMessage
-      else if (m.quoted?.message?.imageMessage) imageMessage = m.quoted.message.imageMessage
-
-      if (imageMessage) {
-        let buffer = Buffer.alloc(0)
-        const stream = await downloadContentFromMessage(imageMessage, 'image')
-        for await (const chunk of stream) { buffer = Buffer.concat([buffer, chunk]) }
-
-        if (buffer.length) {
-          const aiVision = new AskMe()
-          const visionResultObj = await aiVision.chat(cleanText || 'Jelaskan gambar ini', { image: buffer })
-          if (visionResultObj?.msg) imageContext = `\nHASIL ANALISIS GAMBAR:\n${visionResultObj.msg}\n`
+function handleTap(idx) {
+    if(!playing) return;
+    let node = gridEl.children[idx];
+    if(idx === activeIdx) {
+        if(isBad) {
+            score = Math.max(0, score - 5);
+            node.textContent = '💥';
+        } else {
+            score += 10;
+            node.textContent = '✔️';
         }
-      }
-    } catch (e) {}
+        scoreEl.textContent = score;
+        setTimeout(nextRound, 180);
+    }
+}
 
-    const senderNumber = getBareNumber(m.sender)
-    const sid = `${m.chat}:${senderNumber}`
-    const session = global.aiSessions[sid] || { history: [], lastTopic: '', neoSessionId: null }
-    if (!Array.isArray(session.history)) session.history = []
+function endGame() {
+    playing = false;
+    clearInterval(timerId);
+    document.querySelectorAll('.node').forEach(n => { n.className = 'node'; n.textContent = ''; });
+    startBtn.disabled = false;
+    startBtn.textContent = "MAIN LAGI";
+    alert('Hacking Selesai! Total Skor Kamu: ' + score);
+}
 
-    const fullPrompt = `
-${SYSTEM_PROMPT}
-${imageContext}
-User (${senderName}):
-${cleanText || '[User mengirim gambar]'}
+startBtn.onclick = startGame;
+</script></body></html>`
 
-FATIMA-MD:
-`.trim()
-
-    try { await conn.sendPresenceUpdate('composing', m.chat) } catch {}
-
-    const aiResult = await askAI(fullPrompt, session.neoSessionId)
-    const reply = aiResult?.reply
-    if (!reply) return true
-
-    await sleep(400)
-    session.history.push(`User: ${cleanText}`)
-    session.history.push(`FATIMA-MD: ${reply}`)
-
-    global.aiSessions[sid] = {
-      history: session.history.slice(-8),
-      lastTopic: cleanText || '[Gambar]',
-      neoSessionId: aiResult?.sessionId || session.neoSessionId
+    const cyberMessage = {
+        botForwardedMessage: {
+            message: {
+                richResponseMessage: {
+                    messageType: 1,
+                    unifiedResponse: {
+                        data: Buffer.from(JSON.stringify({
+                            __typename: "GenAIUnifiedResponse",
+                            response_id: crypto.randomUUID(),
+                            sections: [{
+                                __typename: "GenAIUnifiedResponseSection",
+                                view_model: {
+                                    __typename: "GenAISingleLayoutViewModel",
+                                    primitive: {
+                                        __typename: "FOAHtmlPrimitiveDemoDONOTUSE",
+                                        trusted_sources: [],
+                                        payload: htmlPayload
+                                    }
+                                }
+                            }]
+                        })).toString("base64")
+                    },
+                    "contextInfo": {
+                        "isForwarded": true,
+                        "forwardOrigin": 4
+                    }
+                }
+            }
+        }
     }
 
-    await conn.sendMessage(m.chat, { text: reply }, { quoted: m })
-  } catch (e) {
-    console.log('[FATIMA-MD AutoAI ERROR]', e)
-  }
-  return true
+    const msg = generateWAMessageFromContent(m.chat, cyberMessage, { userJid: conn.user.id })
+    await conn.relayMessage(m.chat, msg.message, { messageId: m.key.id })
 }
 
 cmd({
-  pattern: "autoai",
-  alias: ["aiimage", "vision"],
-  desc: "Auto AI Gemini & Vision Support",
-  category: "ai",
-}, async (conn, mek, m, { q, reply, from }) => {
-  if (!q && !m.quoted && !m.message?.imageMessage) {
-    return reply("Ketik perintah:\n- `.autoai on` untuk mengaktifkan\n- `.autoai off` untuk mematikan\n- Atau ketik pertanyaan / reply gambar dengan caption `.autoai`");
-  }
-
-  if (q && (q.toLowerCase() === 'on' || q.toLowerCase() === 'off' || q.toLowerCase() === 'all')) {
-    if (!global.db) global.db = {}
-    if (!global.db.data) global.db.data = {}
-    if (!global.db.data.chats) global.db.data.chats = {}
-    if (!global.db.data.chats[from]) global.db.data.chats[from] = {}
-
-    if (q.toLowerCase() === 'on' || q.toLowerCase() === 'all') {
-      global.db.data.chats[from].autogpt = true;
-      return reply("✅ AutoAI berhasil diaktifkan di chat ini! Sekarang bot akan membalas semua chat secara otomatis.");
-    } else {
-      global.db.data.chats[from].autogpt = false;
-      return reply("❌ AutoAI berhasil dimatikan di chat ini!");
-    }
-  }
-
-  try {
-    await conn.sendPresenceUpdate('composing', m.chat);
-    let prompt = q || "Jelaskan gambar ini";
-    let imageBuffer = null;
-
-    if (m.message?.imageMessage) {
-      const stream = await downloadContentFromMessage(m.message.imageMessage, 'image');
-      let buffer = Buffer.alloc(0);
-      for await (const chunk of stream) { buffer = Buffer.concat([buffer, chunk]); }
-      imageBuffer = buffer;
-    } else if (m.quoted && m.quoted.message?.imageMessage) {
-      const stream = await downloadContentFromMessage(m.quoted.message.imageMessage, 'image');
-      let buffer = Buffer.alloc(0);
-      for await (const chunk of stream) { buffer = Buffer.concat([buffer, chunk]); }
-      imageBuffer = buffer;
-    }
-
-    if (imageBuffer) {
-      const aiVision = new AskMe();
-      const visionResultObj = await aiVision.chat(prompt, { image: imageBuffer });
-      return reply(visionResultObj?.msg || "Gagal memproses gambar.");
-    } else {
-      const res = await askAI(prompt);
-      if (!res.reply) return reply("Gagal mendapatkan respons dari AI.");
-      return reply(res.reply);
-    }
-  } catch (e) {
-    return reply(`Terjadi kesalahan: ${e.message}`);
-  }
+    pattern: "cybergrid",
+    alias: ["cybergame", "hacker"],
+    desc: "Main game Cyber Grid KAMRAN-MD",
+    category: "game"
+}, async (conn, mek, m, { from, reply }) => {
+    return handler(conn, mek, m, { from, reply });
 });
+
+export default handler;
