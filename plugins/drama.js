@@ -103,16 +103,6 @@ async function sendNativePlay(conn, m, thumb, videos, usedPrefix, command) {
                 title: 'Download Video/MP4 📹',
                 description: 'Video 480p',
                 id: `${usedPrefix + command} ${v.url} mp4`
-            },
-            {
-                title: 'Download Audio/MP3 💽',
-                description: 'Audio dokumen',
-                id: `.ytmp3 ${v.url}`
-            },
-            {
-                title: 'Download Voice Note 🎙️',
-                description: 'Kirim sebagai VN',
-                id: `.playvn ${v.url}`
             }
         ]
     }));
