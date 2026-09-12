@@ -159,7 +159,7 @@ export async function before(m, { conn }) {
     if (m.fromMe) return true
     if (/^[./#!]/.test(text)) return true
 
-    if (!global.db) return true
+    if (!global.db) global.db = {}
     if (!global.db.data) global.db.data = {}
     if (!global.db.data.chats) global.db.data.chats = {}
     if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = {}
@@ -252,9 +252,12 @@ cmd({
     return reply("Ketik perintah:\n- `.autoai on` untuk mengaktifkan\n- `.autoai off` untuk mematikan\n- Atau ketik pertanyaan / reply gambar dengan caption `.autoai`");
   }
 
-  // Handle setting on / off secara local agar tidak error ke API
   if (q && (q.toLowerCase() === 'on' || q.toLowerCase() === 'off' || q.toLowerCase() === 'all')) {
+    if (!global.db) global.db = {}
+    if (!global.db.data) global.db.data = {}
+    if (!global.db.data.chats) global.db.data.chats = {}
     if (!global.db.data.chats[from]) global.db.data.chats[from] = {}
+
     if (q.toLowerCase() === 'on' || q.toLowerCase() === 'all') {
       global.db.data.chats[from].autogpt = true;
       return reply("✅ AutoAI berhasil diaktifkan di chat ini!");
