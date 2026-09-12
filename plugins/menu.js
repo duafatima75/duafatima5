@@ -71,7 +71,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
 .menu-header { padding: 16px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(255,0,127,0.1), rgba(0,243,255,0.1)); }
 .menu-sub { font-size: 10px; letter-spacing: 2px; color: #ff007f; font-weight: 700; text-transform: uppercase; }
 .menu-title { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 0 12px rgba(255, 0, 127, 0.7); letter-spacing: 1px; }
-.menu-body { padding: 16px; max-height: 420px; overflow-y: auto; scrollbar-width: thin; }
+.menu-body { padding: 16px; max-height: 400px; overflow-y: auto; scrollbar-width: thin; }
 .menu-body::-webkit-scrollbar { width: 4px; }
 .menu-body::-webkit-scrollbar-thumb { background: rgba(255, 0, 127, 0.4); border-radius: 4px; }
 .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
@@ -82,7 +82,10 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
 .category-title { font-size: 13px; font-weight: 900; color: #ff007f; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; text-align: center; text-shadow: 0 0 8px rgba(255,0,127,0.5); }
 .cmd-grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .cmd-pill { background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.25); border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 700; color: #fff; box-shadow: 0 0 6px rgba(0,243,255,0.15); }
-.menu-footer { font-size: 11px; color: rgba(255, 255, 255, 0.6); text-align: center; font-weight: 600; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px; }
+.menu-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 14px 16px; background: rgba(0,0,0,0.2); }
+.footer-info { font-size: 11px; color: rgba(255, 255, 255, 0.7); display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 600; }
+.btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.action-btn { background: linear-gradient(135deg, rgba(255,0,127,0.2), rgba(0,243,255,0.2)); border: 1px solid rgba(255, 0, 127, 0.4); border-radius: 10px; padding: 10px; text-align: center; color: #fff; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 0 0 6px rgba(255,0,127,0.6); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 </style>
 
 <div class="menu-wrap">
@@ -126,10 +129,15 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
       </div>
       ${menuHtmlList}
     </div>
-    <div style="padding: 12px 16px;">
-      <div class="menu-footer">
+    <div class="menu-footer">
+      <div class="footer-info">
         <span>⚡ Version: <b>${VERSION}</b></span>
         <span style="color: #ff007f;">👑 Powered by FATIMA-MD</span>
+      </div>
+      <div class="btn-grid">
+        <div class="action-btn">👑 OWNER</div>
+        <div class="action-btn">🏓 PING</div>
+        <div class="action-btn">⏱️ UPTIME</div>
       </div>
     </div>
   </div>
