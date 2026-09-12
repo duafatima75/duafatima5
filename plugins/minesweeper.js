@@ -7,7 +7,7 @@ import path from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 
-const CREATOR = 'Sania Khan Store';
+const CREATOR = 'FATIMA-MD';
 const BASE_URL = 'https://www.iloveimg.com/upscale-image';
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
@@ -123,7 +123,7 @@ const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhd
 cmd({
     pattern: "upscale",
     alias: ["enhance", "upscaleimage"],
-    desc: "Upscale image using iLoveIMG via Sania Khan Store Rich Message",
+    desc: "Upscale image using iLoveIMG via Rich Message",
     category: "tools",
     filename: __filename
 },
