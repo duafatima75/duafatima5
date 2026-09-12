@@ -102,9 +102,23 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const thumb = await getThumb(thumbnail);
         const highQualityThumbnail = await createHighQualityThumbnail(conn, thumb);
 
-        const invisible = '\u200B'.repeat(400);
-        const caption = ` ┈─ ◦ now playing ◦ ─┈ \n🎵 ${title} \n👤 ${artist} \n⏱️ ${duration} \n👁️ ${views} \n📆 ${uploaded} \n⏳ sedang mengambil audio...`.trim();
+        // Download audio buffer first before sending anything to channel
+        const audioResponse = await axios.get(downloadUrl, {
+            responseType: 'arraybuffer',
+            timeout: 120000,
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
+        });
 
+        const audioBuffer = Buffer.from(audioResponse.data);
+        if (!audioBuffer || !audioBuffer.length) {
+            throw new Error('Buffer audio kosong');
+        }
+
+        const invisible = '\u200B'.repeat(400);
+        const caption = ` ┈─ ◦ now playing ◦ ─┈ \n🎵 ${title} \n👤 ${artist} \n⏱️ ${duration} \n👁️ ${views} \n📆 ${uploaded}`.trim();
+
+        // Send Link Preview First
         if (source) {
             await conn.sendMessage(CHANNEL_ID, {
                 text: `${source}${invisible}\n${caption}`,
@@ -129,19 +143,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
             await conn.sendMessage(CHANNEL_ID, { text: `${caption}` });
         }
 
-        const audioResponse = await axios.get(downloadUrl, {
-            responseType: 'arraybuffer',
-            timeout: 120000,
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity
-        });
-
-        const audioBuffer = Buffer.from(audioResponse.data);
-        if (!audioBuffer || !audioBuffer.length) {
-            throw new Error('Buffer audio kosong');
-        }
-
-        // Send audio directly as mp4/mpeg format to channel
+        // Send Audio Directly to Channel right after
         await conn.sendMessage(CHANNEL_ID, {
             audio: audioBuffer,
             mimetype: 'audio/mp4',
