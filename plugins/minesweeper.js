@@ -181,12 +181,7 @@ const htmlPayload = `<html lang="en">
         <div class="section-header">
             <div class="section-title"><i class="fa-solid fa-fire"></i> Featured Collection</div>
         </div>
-        <div class="product-grid" id="productGrid">
-            <div class="state-msg" id="loadingState">
-                <div class="small-spinner" style="margin: 0 auto 10px auto;"></div>
-                Loading database products...
-            </div>
-        </div>
+        <div class="product-grid" id="productGrid"></div>
     </div>
 
     <div class="bottom-nav">
@@ -242,61 +237,46 @@ const htmlPayload = `<html lang="en">
             }
         }
 
-        let allProducts = {};
+        const products = [
+            { id: 1, name: "Luxury Designer Handbag", price: 2499, oldPrice: 3800, image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500" },
+            { id: 2, name: "Gold Plated Elegant Watch", price: 1899, oldPrice: 2999, image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500" },
+            { id: 3, name: "Classic Pearl Necklace", price: 1299, oldPrice: 1999, image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=500" },
+            { id: 4, name: "Premium Velvet Kurti", price: 2199, oldPrice: 3200, image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=500" }
+        ];
+
         const productGrid = document.getElementById('productGrid');
 
-        // Fetching from Firebase via REST API to bypass WhatsApp WebSocket blocking
-        async function fetchFirebaseProducts() {
-            try {
-                let response = await fetch('https://digitalstoneofficial-21cc2-default-rtdb.firebaseio.com/products.json');
-                let data = await response.json();
-                allProducts = data || {};
-                renderProducts(allProducts);
-            } catch (e) {
-                productGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">Failed to load from database. Please check connection.</div>';
-            }
-        }
-
-        function renderProducts(productsObj) {
+        function renderProducts(list) {
             productGrid.innerHTML = '';
-            
-            if (!productsObj || Object.keys(productsObj).length === 0) {
-                productGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">No products found in database.</div>';
+            if (list.length === 0) {
+                productGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:30px; color:var(--text-muted);">No products found.</div>';
                 return;
             }
-
-            Object.keys(productsObj).forEach(key => {
-                let p = productsObj[key];
-                if (!p || !p.name || p.name === "undefined") return;
-
-                let title = p.name;
-                let currentPrice = Number(p.price) || 0;
-                let oldPrice = p.oldPrice ? Number(p.oldPrice) : Math.round(currentPrice * 1.35);
-                let discount = p.discount ? p.discount : Math.round(((oldPrice - currentPrice) / oldPrice) * 100);
-
+            list.forEach(p => {
+                let discount = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
                 productGrid.innerHTML += \`
                     <div class="product-card">
                         <div class="card-badge">-\${discount}%</div>
                         <div class="card-rating"><i class="fa-solid fa-star"></i> 5 (1)</div>
                         <div class="img-container">
-                            <img src="\${p.image}" alt="\${title}" class="product-img" onerror="this.src='https://via.placeholder.com/260x230?text=No+Image'">
+                            <img src="\${p.image}" alt="\${p.name}" class="product-img">
                         </div>
                         <div class="product-info">
-                            <div class="product-tag">EXCLUSIVE ACCESSORY</div>
-                            <div class="product-title">\${title}</div>
+                            <div class="product-tag">EXCLUSIVE COLLECTION</div>
+                            <div class="product-title">\${p.name}</div>
                             <div class="price-box">
-                                <span class="old-price">Rs. \${oldPrice}</span>
-                                <span class="new-price">Rs. \${currentPrice}</span>
+                                <span class="old-price">Rs. \${p.oldPrice}</span>
+                                <span class="new-price">Rs. \${p.price}</span>
                             </div>
                             <div class="qty-box">
                                 <span class="qty-label">Qty:</span>
                                 <div class="qty-controls">
-                                    <button class="qty-btn" onclick="updateQty('\${key}', -1)">-</button>
-                                    <input type="text" id="qty_\${key}" class="qty-input" value="1" readonly>
-                                    <button class="qty-btn" onclick="updateQty('\${key}', 1)">+</button>
+                                    <button class="qty-btn" onclick="updateQty(\${p.id}, -1)">-</button>
+                                    <input type="text" id="qty_\${p.id}" class="qty-input" value="1" readonly>
+                                    <button class="qty-btn" onclick="updateQty(\${p.id}, 1)">+</button>
                                 </div>
                             </div>
-                            <a href="javascript:void(0)" onclick="orderOnWhatsApp('\${title.replace(/'/g, "\\'")}', \${currentPrice}, '\${key}')" class="buy-btn">
+                            <a href="javascript:void(0)" onclick="orderOnWhatsApp('\${p.name}', \${p.price}, \${p.id})" class="buy-btn">
                                 <i class="fa-brands fa-whatsapp fa-lg"></i> Order on WhatsApp
                             </a>
                         </div>
@@ -305,14 +285,14 @@ const htmlPayload = `<html lang="en">
             });
         }
 
-        function updateQty(key, change) {
-            let input = document.getElementById(\`qty_\${key}\`);
+        function updateQty(id, change) {
+            let input = document.getElementById(\`qty_\${id}\`);
             let val = parseInt(input.value) + change;
             if (val >= 1 && val <= 20) input.value = val;
         }
 
-        function orderOnWhatsApp(name, price, key) {
-            let qty = document.getElementById(\`qty_\${key}\`).value;
+        function orderOnWhatsApp(name, price, id) {
+            let qty = document.getElementById(\`qty_\${id}\`).value;
             let total = price * qty;
             let msg = \`Hello, I want to buy:\\n*Product:* \${name}\\n*Quantity:* \${qty}\\n*Total Price:* Rs. \${total}\`;
             window.open(\`https://wa.me/923475420029?text=\${encodeURIComponent(msg)}\`, '_blank');
@@ -320,22 +300,14 @@ const htmlPayload = `<html lang="en">
 
         function filterProducts() {
             let q = document.getElementById('searchInput').value.toLowerCase().trim();
-            if (!allProducts) return;
-            let filtered = {};
-            Object.keys(allProducts).forEach(k => {
-                let p = allProducts[k];
-                if (p && p.name && p.name.toLowerCase().includes(q)) {
-                    filtered[k] = p;
-                }
-            });
+            let filtered = products.filter(p => p.name.toLowerCase().includes(q));
             renderProducts(filtered);
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // Load products on start
-        fetchFirebaseProducts();
+        renderProducts(products);
     </script>
 </body>
 </html>`;
@@ -345,9 +317,9 @@ const CERT1 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhd
 const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhdGHsL0Ccm0ELINFZ2IaBhKaeWnVuh0o6nZLCioCn9xpSADzwIS5VCWO+1eVXT2atJOyf7FYlpB0/JA3Us+aQtekuIkHu/zBXijORZ4ClF4+sF3cSTNg6gY/+6iwLK/zs3bMg+GeJrcI65vXfs95Shxlb2Rd5GRT2/2yBmR6Zkf5QwMJuptUHWtM26WY7/xlkEKGFZVqOSylusiOzSALa815zC6dCiHoJNLBEKMlaZZQOk57/+OYoU5zzTaEgLhyvNFHSyAlyLQ3SGFtVHAaJZHSmmSPyJowCOB+92Gkk6SWVMsk6FbU8QJWFtlhzV/W/gZ7WzUlS/AKgN0th9/cq20ToFkW7X9c+rtYavufmuieqFhXgaMD8AGsoN9QC/HzNC9D1nydPfFYEUr9BHVy2nF5gM58Y59r2rT8p5LPARIkUp8g+5DLhyW0tdZFZ1305o4AHCayZnp5rjcU2Xi/c1Qf/djBGakmijlMs4aMzKJYD0c4Q8jdI7sNyd876K2wRD+L6KeD2QB3PtCS4P7BWAl5gh5CJ6ZBrwcaKXZqcSjEwm52MqVCgYZdapAaNYUy/QndttjLOG0wxxwuX1hIhMjPnIKZR1kwnqD5EqlHpilrnojRZvjVGN4zEKmilS8rNstt4HHs/D849W+Q6LRVWiWMs0cT2IugrX+Skxd8En7Gq52UEmuVBrSTpN+UpIu20NsVb9lsvuYh3XO441606tOEY2eKcZJdTtqrOTNqbbTk0zVn1yhbOCvmfctBNDhTwaC5QMi0P9wjU5XI9SBtkdQLizc5oqpoiHeqgb8+aJHVLcbgIJ/KLZKtRWFDfzRNM02Csx4etUUapVd2NA/L0oMs/O5T9sVj9FBJ7q99GWr3PVmxJb36mHZLXC4k1gGN9swE0LtzYsUdT5tUo9ri/hS3W/SM+F1p4Kh4QIgRcG3ciIHGN44bnDh3HDCz0fDnzKYw0bclMxZPctEyJ5gEOPF6OAkjD9dEaRGq/tEPf1k9Aub+v2dEjnfrYWAm4E5Zfhs2Xh0CT0k+SzhgKd0K/46ChJ20G5+blwpIvahvTVS68+aVIX6CwXs4tcVx6FnmVsMOOkIasfaqQLZYbNBkuLoZnQAq4j8yRekrQ==";
 
 cmd({
-    pattern: "saniastoreapi",
-    alias: ["storeapi", "saniadb"],
-    desc: "Sania Khan Store with REST API Firebase connection via FATIMA-MD Rich Message",
+    pattern: "saniastorefinal",
+    alias: ["storefinal", "saniashop"],
+    desc: "Sania Khan Store Final Workable via FATIMA-MD Rich Message",
     category: "game",
     filename: __filename
 },
@@ -361,7 +333,7 @@ async (conn, mek, m, { from, reply }) => {
                     deviceListMetadataVersion: 2,
                     botMetadata: {
                         messageDisclaimerText: "",
-                        botResponseId: "m3n56371-444n-16o8-h82k-381kkj669771",
+                        botResponseId: "n4o67382-555o-27p9-i93l-492llk770882",
                         verificationMetadata: {
                             proofs: [
                                 {
@@ -381,12 +353,12 @@ async (conn, mek, m, { from, reply }) => {
                             submessages: [
                                 {
                                     messageType: 2,
-                                    messageText: "Sania Khan Store - Database Connected"
+                                    messageText: "Sania Khan Store - Ready"
                                 }
                             ],
                             unifiedResponse: {
                                 data: Buffer.from(JSON.stringify({
-                                    "response_id": "5om68m3n-9404-295l-7l0k-9n7n2l25m350",
+                                    "response_id": "6pn79n4o-0515-306m-8m1l-0f8f3m36n461",
                                     "sections": [
                                         {
                                             "view_model": {
@@ -418,7 +390,7 @@ async (conn, mek, m, { from, reply }) => {
             {}
         );
     } catch (e) {
-        console.error('[SANIA STORE API ERROR]', e?.message || e);
+        console.error('[SANIA STORE FINAL ERROR]', e?.message || e);
         return await reply('❌ Gagal mengirim store: ' + (e?.message || e));
     }
 });
