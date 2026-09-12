@@ -1,25 +1,16 @@
 import { fileURLToPath } from 'url';
 import axios from 'axios';
-import fs from 'fs';
-import path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import { cmd } from '../command.js';
+import { toPTT } from '../lib/converter.js';
 
-const execPromise = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 
 // ============================================================
 // CONFIG
 // ============================================================
-// Ganti dengan ID Channel WhatsApp kamu
 const CHANNEL_ID = '120363430309747294@newsletter'; 
-// Link Channel kamu
 const CHANNEL_LINK = 'https://whatsapp.com/channel/0029VbDmA5Q47Xe3xhxVZU1q'; 
-// API Neosoft
 const API_URL = 'https://api.neosoft.best/api/downloader/youtube-play'; 
-// Maksimal ukuran audio sebelum convert (50MB)
-const MAX_FILE_SIZE = 50 * 1024 * 1024; 
 
 // ============================================================
 // THUMBNAIL
@@ -77,11 +68,8 @@ cmd({
 },
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => {
     
-    // ========================================================
-    // CHECK TEXT & CHANNEL
-    // ========================================================
     const text = q ? q.trim() : "";
-    const usedPrefix = "."; // Adjust if your bot uses a dynamic prefix helper
+    const usedPrefix = ".";
 
     if (!text) {
         return reply(`╭─❏ 𝗣𝗹𝗮𝘆 𝗖𝗵𝗮𝗻𝗻𝗲𝗹\n│\n│✧ Masukkan judul lagu!\n│\n│✧ Format:\n│ ${usedPrefix + command} <judul lagu>\n│\n│✧ Contoh:\n│ ${usedPrefix + command} lofi hip hop\n│\n╰──────────────❏`);
@@ -91,17 +79,9 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         return reply(`╭─❏ 𝗣𝗹𝗮𝘆 𝗖𝗵𝗮𝗻𝗻𝗲𝗹\n│\n│✧ ID Channel belum diatur!\n│\n│✧ Edit bagian:\n│ const CHANNEL_ID = '...'\n│\n╰──────────────❏`);
     }
 
-    // ========================================================
-    // REACTION LOADING
-    // ========================================================
     await m.react('⏳').catch(() => {});
-    let inputPath = null;
-    let outputPath = null;
 
     try {
-        // ====================================================
-        // REQUEST API
-        // ====================================================
         const { data } = await axios.get(API_URL, {
             params: { q: text, type: 'mp3' },
             timeout: 30000
@@ -111,9 +91,6 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
             throw new Error('Audio tidak ditemukan');
         }
 
-        // ====================================================
-        // DATA API & THUMBNAIL
-        // ====================================================
         const title = data.title || text;
         const artist = data.artist || 'Unknown';
         const thumbnail = data.thumbnail || '';
@@ -126,15 +103,9 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const thumb = await getThumb(thumbnail);
         const highQualityThumbnail = await createHighQualityThumbnail(conn, thumb);
 
-        // ====================================================
-        // CAPTION PREVIEW
-        // ====================================================
         const invisible = '\u200B'.repeat(400);
         const caption = ` ┈─ ◦ now playing ◦ ─┈ \n🎵 ${title} \n👤 ${artist} \n⏱️ ${duration} \n👁️ ${views} \n📆 ${uploaded} \n⏳ sedang mengambil audio...`.trim();
 
-        // ====================================================
-        // SEND MATCHED LINK PREVIEW
-        // ====================================================
         if (source) {
             await conn.sendMessage(CHANNEL_ID, {
                 text: `${source}${invisible}\n${caption}`,
@@ -159,127 +130,44 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
             await conn.sendMessage(CHANNEL_ID, { text: `${caption}` });
         }
 
-        // ====================================================
-        // TEMP DIRECTORY & FILE
-        // ====================================================
-        const tmpDir = path.resolve('./tmp');
-        if (!fs.existsSync(tmpDir)) {
-            fs.mkdirSync(tmpDir, { recursive: true });
-        }
-
-        const fileName = `playch_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-        inputPath = path.join(tmpDir, `${fileName}.mp3`);
-        outputPath = path.join(tmpDir, `${fileName}.opus`);
-
-        // ====================================================
-        // DOWNLOAD MP3
-        // ====================================================
-        const audioResponse = await axios({
-            method: 'GET',
-            url: downloadUrl,
-            responseType: 'stream',
+        // Download MP3 Buffer directly using Axios
+        const audioResponse = await axios.get(downloadUrl, {
+            responseType: 'arraybuffer',
             timeout: 120000,
             maxContentLength: Infinity,
             maxBodyLength: Infinity
         });
 
-        const writer = fs.createWriteStream(inputPath);
-        audioResponse.data.pipe(writer);
-        
-        await new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-            audioResponse.data.on('error', reject);
-        });
-
-        // ====================================================
-        // CHECK FILE
-        // ====================================================
-        if (!fs.existsSync(inputPath)) {
-            throw new Error('File audio tidak ditemukan');
-        }
-        
-        const stats = fs.statSync(inputPath);
-        if (stats.size > MAX_FILE_SIZE) {
-            throw new Error('FILE_TOO_LARGE');
-        }
-
-        // ====================================================
-        // CONVERT MP3 -> OPUS
-        // ====================================================
-        await execPromise(
-            `ffmpeg -y -i "${inputPath}" -vn -c:a libopus -ac 1 -ar 48000 -b:a 32k -application voip -map_metadata -1 "${outputPath}"`
-        );
-
-        // ====================================================
-        // CHECK OUTPUT & READ OPUS
-        // ====================================================
-        if (!fs.existsSync(outputPath)) {
-            throw new Error('FFmpeg gagal menghasilkan audio');
-        }
-
-        const audioBuffer = fs.readFileSync(outputPath);
+        const audioBuffer = Buffer.from(audioResponse.data);
         if (!audioBuffer || !audioBuffer.length) {
             throw new Error('Buffer audio kosong');
         }
 
-        // ====================================================
-        // SEND AUDIO TO CHANNEL
-        // ====================================================
+        // Convert MP3 to Opus using converter.js toPTT function
+        const pttAudio = await toPTT(audioBuffer, 'mp3');
+
+        // Send Audio to Channel
         await conn.sendMessage(CHANNEL_ID, {
-            audio: audioBuffer,
+            audio: pttAudio,
             mimetype: 'audio/ogg; codecs=opus',
             fileName: `${title}.opus`,
             ptt: false
         });
 
-        // ====================================================
-        // SUCCESS
-        // ====================================================
         await m.react('✅').catch(() => {});
         return reply(`╭─❏ 𝗣𝗹𝗮𝘆 𝗖𝗵𝗮𝗻𝗻𝗲𝗹\n│\n│✧ Berhasil dikirim!\n│\n│✧ Judul : ${title}\n│✧ Artist : ${artist}\n│✧ Durasi : ${duration}\n│✧ Views : ${views}\n│\n│✧ Channel:\n│ ${CHANNEL_LINK}\n│\n╰──────────────❏`);
 
     } catch (e) {
         console.error('[PLAYCH ERROR]', e);
-
-        // ERROR REACTION
         await m.react('❌').catch(() => {});
 
-        // ERROR MESSAGE
         let errorMsg = 'Terjadi kesalahan saat proses.';
-        if (e.message === 'FILE_TOO_LARGE') {
-            errorMsg = 'File terlalu besar. Maksimal 50MB.';
+        if (e.message === 'Audio tidak ditemukan') {
+            errorMsg = 'Audio tidak ditemukan dari API.';
         } else if (e.code === 'ECONNABORTED') {
             errorMsg = 'Request timeout. Coba lagi nanti.';
-        } else if (e.response?.status === 404) {
-            errorMsg = 'Lagu atau audio tidak ditemukan.';
-        } else if (e.response?.status === 403) {
-            errorMsg = 'Download ditolak oleh server.';
-        } else if (e.response?.status === 429) {
-            errorMsg = 'API sedang terlalu banyak digunakan.';
-        } else if (e.code === 'ENOTFOUND') {
-            errorMsg = 'Server API tidak dapat dihubungi.';
-        } else if (e.message === 'Audio tidak ditemukan') {
-            errorMsg = 'Audio tidak ditemukan dari API.';
-        } else if (e.message === 'FFmpeg gagal menghasilkan audio') {
-            errorMsg = 'FFmpeg gagal mengconvert audio.';
         }
 
         return reply(`╭─❏ 𝗣𝗹𝗮𝘆 𝗖𝗵𝗮𝗻𝗻𝗲𝗹\n│\n│✧ Status : Gagal\n│✧ Error :\n│ ${errorMsg}\n│\n╰──────────────❏`);
-        
-    } finally {
-        // ====================================================
-        // CLEANUP
-        // ====================================================
-        try {
-            if (inputPath && fs.existsSync(inputPath)) {
-                fs.unlinkSync(inputPath);
-            }
-            if (outputPath && fs.existsSync(outputPath)) {
-                fs.unlinkSync(outputPath);
-            }
-        } catch (err) {
-            console.error('[PLAYCH CLEANUP]', err.message);
-        }
     }
 });
