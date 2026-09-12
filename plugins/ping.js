@@ -31,7 +31,9 @@ async (conn, mek, m, { from, reply }) => {
         const heapUsed = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2);
         const rssMem = (process.memoryUsage().rss / 1024 / 1024).toFixed(2);
 
+        // Yahan noxXza ko replace karke FATIMA-MD kar diya gaya hai
         const niki = sync
+            .replace(/noxXza/g, 'FATIMA-MD')
             .replace(/%LATENCY%/g, latency)
             .replace(/%PLATFORM%/g, os.platform())
             .replace(/%OS_INFO%/g, `${os.platform()} ${os.release()}`)
