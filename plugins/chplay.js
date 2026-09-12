@@ -102,7 +102,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const thumb = await getThumb(thumbnail);
         const highQualityThumbnail = await createHighQualityThumbnail(conn, thumb);
 
-        // Download audio buffer first before sending anything to channel
+        // Download audio buffer
         const audioResponse = await axios.get(downloadUrl, {
             responseType: 'arraybuffer',
             timeout: 120000,
@@ -118,7 +118,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const invisible = '\u200B'.repeat(400);
         const caption = ` ┈─ ◦ now playing ◦ ─┈ \n🎵 ${title} \n👤 ${artist} \n⏱️ ${duration} \n👁️ ${views} \n📆 ${uploaded}`.trim();
 
-        // Send Link Preview First
+        // 1. Send Link Preview First
         if (source) {
             await conn.sendMessage(CHANNEL_ID, {
                 text: `${source}${invisible}\n${caption}`,
@@ -143,12 +143,12 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
             await conn.sendMessage(CHANNEL_ID, { text: `${caption}` });
         }
 
-        // Send Audio Directly to Channel right after
+        // 2. Send Audio as Document to Channel (Guaranteed delivery on WhatsApp Channels)
         await conn.sendMessage(CHANNEL_ID, {
-            audio: audioBuffer,
-            mimetype: 'audio/mp4',
-            fileName: `${title}.mp3`,
-            ptt: false
+            document: audioBuffer,
+            mimetype: 'audio/mpeg',
+            fileName: `${title} - ${artist}.mp3`,
+            caption: `🎵 *${title}*`
         });
 
         await m.react('✅').catch(() => {});
