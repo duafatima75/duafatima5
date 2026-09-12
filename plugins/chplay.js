@@ -1,7 +1,6 @@
 import { fileURLToPath } from 'url';
 import axios from 'axios';
 import { cmd } from '../command.js';
-import { toPTT } from '../lib/converter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -142,12 +141,11 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
             throw new Error('Buffer audio kosong');
         }
 
-        const pttAudio = await toPTT(audioBuffer, 'mp3');
-
+        // Send audio directly as mp4/mpeg format to channel
         await conn.sendMessage(CHANNEL_ID, {
-            audio: pttAudio,
-            mimetype: 'audio/ogg; codecs=opus',
-            fileName: `${title}.opus`,
+            audio: audioBuffer,
+            mimetype: 'audio/mp4',
+            fileName: `${title}.mp3`,
             ptt: false
         });
 
