@@ -1,4 +1,4 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - HTML PLAY / SONG DOWNLOADER (DOCUMENT STYLE CARD)
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - INTERACTIVE HTML PLAY / MUSIC PLAYER
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -14,9 +14,9 @@ const CERT1 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhd
 const CERT2 = "TklYRUwuTWVzc2FnZUJ1aWxkZXJWNC43LUNlcnRpZmljYXRlQ2hhaW4uTWV0YWRhdGHsL0Ccm0ELINFZ2IaBhKaeWnVuh0o6nZLCioCn9xpSADzwIS5VCWO+1eVXT2atJOyf7FYlpB0/JA3Us+aQtekuIkHu/zBXijORZ4ClF4+sF3cSTNg6gY/+6iwLK/zs3bMg+GeJrcI65vXfs95Shxlb2Rd5GRT2/2yBmR6Zkf5QwMJuptUHWtM26WY7/xlkEKGFZVqOSylusiOzSALa815zC6dCiHoJNLBEKMlaZZQOk57/+OYoU5zzTaEgLhyvNFHSyAlyLQ3SGFtVHAaJZHSmmSPyJowCOB+92Gkk6SWVMsk6FbU8QJWFtlhzV/W/gZ7WzUlS/AKgN0th9/cq20ToFkW7X9c+rtYavufmuieqFhXgaMD8AGsoN9QC/HzNC9D1nydPfFYEUr9BHVy2nF5gM58Y59r2rT8p5LPARIkUp8g+5DLhyW0tdZFZ1305o4AHCayZnp5rjcU2Xi/c1Qf/djBGakmijlMs4aMzKJYD0c4Q8jdI7sNyd876K2wRD+L6KeD2QB3PtCS4P7BWAl5gh5CJ6ZBrwcaKXZqcSjEwm52MqVCgYZdapAaNYUy/QndttjLOG0wxxwuX1hIhMjPnIKZR1kwnqD5EqlHpilrnojRZvjVGN4zEKmilS8rNstt4HHs/D849W+Q6LRVWiWMs0cT2IugrX+Skxd8En7Gq52UEmuVBrSTpN+UpIu20NsVb9lsvuYh3XO441606tOEY2eKcZJdTtqrOTNqbbTk0zVn1yhbOCvmfctBNDhTwaC5QMi0P9wjU5XI9SBtkdQLizc5oqpoiHeqgb8+aJHVLcbgIJ/KLZKtRWFDfzRNM02Csx4etUUapVd2NA/L0oMs/O5T9sVj9FBJ7q99GWr3PVmxJb36mHZLXC4k1gGN9swE0LtzYsUdT5tUo9ri/hS3W/SM+F1p4Kh4QIgRcG3ciIHGN44bnDh3HDCz0fDnzKYw0bclMxZPctEyJ5gEOPF6OAkjD9dEaRGq/tEPf1k9Aub+v2dEjnfrYWAm4E5Zfhs2Xh0CT0k+SzhgKd0K/46ChJ20G5+blwpIvahvTVS68+aVIX6CwXs4tcVx6FnmVsMOOkIasfaqQLZYbNBkuLoZnQAq4j8yRekrQ==";
 
 cmd({
-    pattern: "play",
-    alias: ["ytplay", "song", "plays"],
-    desc: "Search and play songs with document style HTML card",
+    pattern: "play65",
+    alias: ["ytplay66", "song77", "plays"],
+    desc: "Search and play songs with interactive HTML audio player",
     category: "downloader",
     react: "🎵",
     filename: __filename
@@ -51,9 +51,9 @@ cmd({
         const audioUrl = info.mp3;
         const title = info.title || text;
         const thumbnail = info.thumbnail || 'https://i.ibb.co/3r13z6h/images.jpg';
-        const duration = info.duration_timestamp || 'N/A';
+        const duration = info.duration_timestamp || '3:45';
         const author = info.author || 'Unknown Artist';
-        const displayTitle = title.length > 35 ? title.substring(0, 32) + '...' : title;
+        const displayTitle = title.length > 32 ? title.substring(0, 29) + '...' : title;
 
         if (!audioUrl) {
             await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
@@ -63,47 +63,67 @@ cmd({
         const htmlPayload = `<style>
 * { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; box-sizing: border-box; }
 body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #eee; }
-.doc-wrap { width: 100%; max-width: 520px; margin: auto; padding: 12px; }
-.doc-card { background: rgba(15, 18, 28, 0.95); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(0, 243, 255, 0.4); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 243, 255, 0.2), 0 0 20px rgba(255, 0, 127, 0.2); }
-.doc-header { padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,243,255,0.1), rgba(255,0,127,0.1)); }
-.doc-sub { font-size: 10px; letter-spacing: 2px; color: #00f3ff; font-weight: 700; text-transform: uppercase; }
-.doc-title-top { font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.6); }
-.doc-body { padding: 16px; display: flex; gap: 14px; align-items: center; }
-.doc-file-icon { width: 55px; height: 65px; background: rgba(255, 0, 127, 0.15); border: 1px solid rgba(255, 0, 127, 0.4); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 0 10px rgba(255,0,127,0.3); }
-.doc-file-type { font-size: 10px; font-weight: 900; color: #ff007f; letter-spacing: 1px; }
-.doc-info { flex: 1; overflow: hidden; }
-.song-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 6px rgba(255,255,255,0.3); }
-.song-detail { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-bottom: 4px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-.doc-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 16px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
-.status-badge { background: rgba(0, 255, 135, 0.15); border: 1px solid rgba(0, 255, 135, 0.4); color: #00ff87; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 10px; }
+.aud-wrap { width: 100%; max-width: 520px; margin: auto; padding: 12px; }
+.aud-card { background: rgba(15, 18, 28, 0.96); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(0, 243, 255, 0.4); border-radius: 18px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 243, 255, 0.2), 0 0 20px rgba(255, 0, 127, 0.2); }
+.aud-header { padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(0,243,255,0.1), rgba(255,0,127,0.1)); }
+.aud-sub { font-size: 10px; letter-spacing: 2px; color: #00f3ff; font-weight: 700; text-transform: uppercase; }
+.aud-title-top { font-size: 18px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.6); }
+.aud-body { padding: 16px; display: flex; gap: 14px; align-items: center; }
+.aud-thumb-box { position: relative; width: 65px; height: 65px; border-radius: 14px; overflow: hidden; border: 2px solid rgba(0, 243, 255, 0.5); box-shadow: 0 0 12px rgba(0,243,255,0.3); flex-shrink: 0; }
+.aud-thumb { width: 100%; height: 100%; object-fit: cover; }
+.aud-play-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; cursor: pointer; }
+.aud-info { flex: 1; overflow: hidden; }
+.song-title { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 6px rgba(255,255,255,0.3); }
+.song-detail { font-size: 11px; color: rgba(255, 255, 255, 0.7); margin-bottom: 2px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.wave-box { display: flex; align-items: center; gap: 3px; height: 18px; margin-top: 6px; }
+.wave-bar { width: 4px; background: #00f3ff; border-radius: 2px; animation: pulseWave 1.2s infinite ease-in-out; }
+.wave-bar:nth-child(2) { animation-delay: 0.2s; background: #ff007f; }
+.wave-bar:nth-child(3) { animation-delay: 0.4s; }
+.wave-bar:nth-child(4) { animation-delay: 0.6s; background: #00ff87; }
+.wave-bar:nth-child(5) { animation-delay: 0.8s; }
+@keyframes pulseWave { 0%, 100% { height: 4px; } 50% { height: 16px; } }
+.aud-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 16px; background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+.player-controls { display: flex; align-items: center; gap: 8px; }
+.ctrl-btn { background: rgba(0, 243, 255, 0.15); border: 1px solid rgba(0, 243, 255, 0.4); color: #00f3ff; padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; }
 </style>
 
-<div class="doc-wrap">
-  <div class="doc-card">
-    <div class="doc-header">
+<div class="aud-wrap">
+  <div class="aud-card">
+    <div class="aud-header">
       <div>
-        <div class="doc-sub">FATIMA-MD DOCUMENT PLAYER</div>
-        <div class="doc-title-top">Audio File Ready 📁</div>
+        <div class="aud-sub">FATIMA-MD AUDIO PLAYER</div>
+        <div class="aud-title-top">Music Stream 🎵</div>
       </div>
       <div>
-        <span class="status-badge">SUCCESS</span>
+        <span style="background: rgba(0,255,135,0.15); border: 1px solid rgba(0,255,135,0.4); color: #00ff87; padding: 4px 10px; border-radius: 20px; font-weight: 800; font-size: 10px;">READY</span>
       </div>
     </div>
-    <div class="doc-body">
-      <div class="doc-file-icon">
-        <span style="font-size: 20px;">🎵</span>
-        <span class="doc-file-type">MP3</span>
+    <div class="aud-body">
+      <div class="aud-thumb-box">
+        <img src="${thumbnail}" class="aud-thumb" alt="Thumbnail">
+        <div class="aud-play-overlay">▶</div>
       </div>
-      <div class="doc-info">
+      <div class="aud-info">
         <div class="song-title" title="${title}">${displayTitle}</div>
         <div class="song-detail">👤 <b>Artist:</b> ${author}</div>
         <div class="song-detail">⏱️ <b>Duration:</b> ${duration}</div>
-        <div class="doc-sub" style="color: #00ff87; margin-top: 4px;">📂 Document Attached & Sent</div>
+        <div class="wave-box">
+          <div class="wave-bar" style="height: 12px;"></div>
+          <div class="wave-bar" style="height: 16px;"></div>
+          <div class="wave-bar" style="height: 8px;"></div>
+          <div class="wave-bar" style="height: 14px;"></div>
+          <div class="wave-bar" style="height: 10px;"></div>
+          <div class="wave-bar" style="height: 15px;"></div>
+        </div>
       </div>
     </div>
-    <div class="doc-footer">
-      <span style="color: rgba(255,255,255,0.6); font-weight: 600;">⚡ Version: <b>12.00</b></span>
-      <span style="color: #ff007f; font-weight: 700;">👑 Powered by FATIMA-MD</span>
+    <div class="aud-footer">
+      <div class="player-controls">
+        <div class="ctrl-btn">▶ PLAY / ⏸ PAUSE</div>
+      </div>
+      <div>
+        <span style="color: #ff007f; font-weight: 700;">👑 Powered by FATIMA-MD</span>
+      </div>
     </div>
   </div>
 </div>`;
@@ -147,7 +167,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
                 message: {
                     richResponseMessage: {
                         messageType: 1,
-                        submessages: [{ messageType: 2, messageText: "FATIMA-MD Song Document" }],
+                        submessages: [{ messageType: 2, messageText: "FATIMA-MD Music Player" }],
                         unifiedResponse: { data: dataBase64 },
                         contextInfo: {
                             forwardingScore: 999,
