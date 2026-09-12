@@ -130,7 +130,6 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
             await conn.sendMessage(CHANNEL_ID, { text: `${caption}` });
         }
 
-        // Download MP3 Buffer directly using Axios
         const audioResponse = await axios.get(downloadUrl, {
             responseType: 'arraybuffer',
             timeout: 120000,
@@ -143,10 +142,8 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
             throw new Error('Buffer audio kosong');
         }
 
-        // Convert MP3 to Opus using converter.js toPTT function
         const pttAudio = await toPTT(audioBuffer, 'mp3');
 
-        // Send Audio to Channel
         await conn.sendMessage(CHANNEL_ID, {
             audio: pttAudio,
             mimetype: 'audio/ogg; codecs=opus',
