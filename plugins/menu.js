@@ -1,4 +1,4 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ULTRA PRO MAX HTML MENU
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ULTRA PRO MAX HTML MENU WITH SCROLL BUTTONS
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -71,7 +71,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
 .menu-header { padding: 16px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(255,0,127,0.1), rgba(0,243,255,0.1)); }
 .menu-sub { font-size: 10px; letter-spacing: 2px; color: #ff007f; font-weight: 700; text-transform: uppercase; }
 .menu-title { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 0 12px rgba(255, 0, 127, 0.7); letter-spacing: 1px; }
-.menu-body { padding: 16px; max-height: 400px; overflow-y: auto; scrollbar-width: thin; }
+.menu-body { padding: 16px; height: 380px; overflow-y: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; scrollbar-width: thin; }
 .menu-body::-webkit-scrollbar { width: 4px; }
 .menu-body::-webkit-scrollbar-thumb { background: rgba(255, 0, 127, 0.4); border-radius: 4px; }
 .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
@@ -82,8 +82,10 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
 .category-title { font-size: 13px; font-weight: 900; color: #ff007f; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; text-align: center; text-shadow: 0 0 8px rgba(255,0,127,0.5); }
 .cmd-grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .cmd-pill { background: rgba(0, 243, 255, 0.08); border: 1px solid rgba(0, 243, 255, 0.25); border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 700; color: #fff; box-shadow: 0 0 6px rgba(0,243,255,0.15); }
-.menu-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 14px 16px; background: rgba(0,0,0,0.2); }
-.footer-info { font-size: 11px; color: rgba(255, 255, 255, 0.7); display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 600; }
+.menu-footer { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 12px 16px; background: rgba(0,0,0,0.3); }
+.footer-info { font-size: 11px; color: rgba(255, 255, 255, 0.7); display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 600; }
+.scroll-btns { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 8px; }
+.scroll-btn { background: rgba(0, 243, 255, 0.15); border: 1px solid rgba(0, 243, 255, 0.4); border-radius: 8px; padding: 7px; text-align: center; color: #00f3ff; font-size: 11px; font-weight: 800; text-transform: uppercase; cursor: pointer; text-shadow: 0 0 6px rgba(0,243,255,0.6); }
 .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .action-btn { background: linear-gradient(135deg, rgba(255,0,127,0.2), rgba(0,243,255,0.2)); border: 1px solid rgba(255, 0, 127, 0.4); border-radius: 10px; padding: 10px; text-align: center; color: #fff; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; text-shadow: 0 0 6px rgba(255,0,127,0.6); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 </style>
@@ -100,7 +102,7 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
         <span style="font-size: 11px; color: #00ff87; font-weight: bold; margin-left: 4px;">ONLINE</span>
       </div>
     </div>
-    <div class="menu-body">
+    <div class="menu-body" id="menuBody">
       <div class="info-grid">
         <div class="info-box">
           <div class="info-lbl">Owner</div>
@@ -133,6 +135,10 @@ body { margin: 0; background: transparent; font-family: 'Segoe UI', Roboto, Helv
       <div class="footer-info">
         <span>⚡ Version: <b>${VERSION}</b></span>
         <span style="color: #ff007f;">👑 Powered by FATIMA-MD</span>
+      </div>
+      <div class="scroll-btns">
+        <div class="scroll-btn" onclick="document.getElementById('menuBody').scrollBy({top: -150, behavior: 'smooth'})">⬆️ SCROLL UP</div>
+        <div class="scroll-btn" onclick="document.getElementById('menuBody').scrollBy({top: 150, behavior: 'smooth'})">⬇️ SCROLL DOWN</div>
       </div>
       <div class="btn-grid">
         <div class="action-btn">👑 OWNER</div>
