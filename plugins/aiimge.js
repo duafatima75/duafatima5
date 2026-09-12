@@ -3,6 +3,16 @@ import { generateWAMessageFromContent } from '@whiskeysockets/baileys'
 import { cmd } from '../command.js'
 
 let handler = async (conn, mek, m, { from, reply }) => {
+    // Pastikan database global dan users terinisialisasi
+    if (!global.db) global.db = { data: { users: {} } }
+    if (!global.db.data) global.db.data = { users: {} }
+    if (!global.db.data.users) global.db.data.users = {}
+
+    // Jika user belum terdaftar di database, buatkan data awal
+    if (!global.db.data.users[m.sender]) {
+        global.db.data.users[m.sender] = { money: 500 }
+    }
+
     let user = global.db.data.users[m.sender]
     let entryFee = 50
 
