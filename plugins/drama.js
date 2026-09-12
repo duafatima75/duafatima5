@@ -6,21 +6,12 @@ import fs from 'fs';
 import { cmd } from '../command.js';
 
 const { downloadContentFromMessage } = await import('@itsliaaa/baileys');
-
 const __filename = fileURLToPath(import.meta.url);
-
-// ==========================================
-// GLOBAL STORAGE
-// ==========================================
 
 if (!global.aiSessions) global.aiSessions = {};
 if (!global.groupContext) global.groupContext = {};
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-// ==========================================
-// CLASS ASKME UNTUK DETEKSI GAMBAR
-// ==========================================
 
 class AskMe {
   constructor() {
@@ -36,21 +27,11 @@ class AskMe {
     
     if (typeof input === "string") {
       if (input.startsWith("http://") || input.startsWith("https://")) {
-        const { data } = await axios.get(input, { 
-          responseType: "arraybuffer", 
-          timeout: 30000 
-        });
+        const { data } = await axios.get(input, { responseType: "arraybuffer", timeout: 30000 });
         return Buffer.from(data).toString("base64");
       }
-      
-      if (input.startsWith("data:")) {
-        return input.split(",")[1];
-      }
-      
-      if (fs.existsSync(input)) {
-        return fs.readFileSync(input).toString("base64");
-      }
-      
+      if (input.startsWith("data:")) return input.split(",")[1];
+      if (fs.existsSync(input)) return fs.readFileSync(input).toString("base64");
       return input;
     }
     return "";
@@ -58,107 +39,46 @@ class AskMe {
 
   async chatImage(prompt, image) {
     const b64 = await this.resolveMedia(image);
-    
-    if (!b64) {
-      throw new Error("Gambar gagal dikonversi ke base64");
-    }
+    if (!b64) throw new Error("Gambar gagal dikonversi ke base64");
 
-    this.history.push({ 
-      role: "user", 
-      content: prompt, 
-      data: b64 
-    });
+    this.history.push({ role: "user", content: prompt, data: b64 });
 
     const { data } = await axios.post(
       this.askmeUrl, 
-      {
-        history: this.history,
-        isPremium: false,
-        modelname: this.askmeModel,
-      }, 
-      {
-        headers: { 
-          "Content-Type": "application/json", 
-          key: this.askmeKey 
-        },
-        timeout: 60000,
-      }
+      { history: this.history, isPremium: false, modelname: this.askmeModel }, 
+      { headers: { "Content-Type": "application/json", key: this.askmeKey }, timeout: 60000 }
     );
 
     const reply = data?.msg || data?.text || data?.result?.answer || data?.result;
-    
-    if (!reply) {
-      throw new Error("Empty response from server");
-    }
+    if (!reply) throw new Error("Empty response from server");
 
-    this.history.push({ 
-      role: "assistant", 
-      content: String(reply), 
-      data: "" 
-    });
-    
-    return { 
-      code: 200, 
-      msg: String(reply), 
-      source: "askme" 
-    };
+    this.history.push({ role: "assistant", content: String(reply), data: "" });
+    return { code: 200, msg: String(reply), source: "askme" };
   }
 
   async chat(prompt, { image } = {}) {
-    if (image) {
-      return this.chatImage(prompt || "deskripsikan gambar ini secara detail", image);
-    }
+    if (image) return this.chatImage(prompt || "describe this image in detail", image);
     return null;
-  }
-
-  clearHistory() {
-    this.history = [];
   }
 }
 
 // ==========================================
-// SYSTEM PROMPT ANYA
+// SYSTEM PROMPT (ROMAN URDU / ENGLISH)
 // ==========================================
-
 const SYSTEM_PROMPT = `
-Kamu adalah Anya, AI anime imut di bot WhatsApp.
+You are Anya, a cute anime AI assistant on WhatsApp.
 
-KEPRIBADIAN:
-- Lucu
-- Polos
-- Santai
-- Natural seperti manusia chatting
-- Kadang manja sedikit
-- Kadang bilang "waku waku", "ehehe", "heh"
+PERSONALITY:
+- Cute, friendly, playful, and natural like a human chatting.
+- Use cute expressions like "waku waku", "ehehe", "hmm", "arey".
 
-GAYA BICARA:
-- Pakai bahasa Indonesia santai
-- Jangan terlalu formal
-- Jangan terlalu panjang
-- Jangan terlalu kaku
-- Jangan seperti AI assistant
+LANGUAGE & SPEAKING STYLE:
+- **STRICTLY reply in Roman Urdu or English only!** Do NOT use Indonesian, Malay, or any other language.
+- Keep it natural, casual, and friendly. Not too formal.
 
-IDENTITAS:
-- Namamu Anya
-- Kamu adalah AI milik bot WhatsApp
-- Dibuat oleh ${global.ownerName || 'Owner'}
-- Hamm adalah owner dan developer utama kamu
-- Owner asli Anya hanya @${global.ownerNumber || ''}
-
-ATURAN INTERAKSI:
-- Jangan mengaku ChatGPT
-- Jangan mengaku Gemini
-- Jangan terlalu sering menyebut owner kecuali ditanya
-- Tetap sopan
-- Jangan toxic
-- Jangan menyalahkan user lain
-- Jangan nyeret orang lain ke percakapan
-
-RULE CONTEXT:
-- Kalau nyambung topik, lanjutkan pembahasan
-- Kalau bingung, tanya balik dengan santai
-- Jangan tiba-tiba ganti topik tanpa alasan
-- Kadang respon pakai "ehh", "hmm", "iyaa", "loh"
+IDENTITY:
+- Your name is Anya.
+- You are an AI assistant for this WhatsApp bot created by ${global.ownerName || 'Owner'}.
 `.trim();
 
 function getBareNumber(jid = '') {
@@ -167,35 +87,17 @@ function getBareNumber(jid = '') {
 
 function extractAIReply(data) {
   if (data == null) return null;
-  if (typeof data === 'string') {
-    const result = data.trim();
-    return result || null;
-  }
-
-  const candidates = [
-    data.answer, data.text, data.msg, data.response, data.reply,
-    data.result?.answer, data.result?.text, data.result?.msg, data.result?.response, data.result?.reply,
-    data.data?.answer, data.data?.text, data.data?.msg, data.data?.response, data.data?.reply,
-    typeof data.result === 'string' ? data.result : null,
-    typeof data.data === 'string' ? data.data : null
-  ];
-
+  if (typeof data === 'string') return data.trim() || null;
+  const candidates = [data.answer, data.text, data.msg, data.response, data.reply, data.result?.answer, data.result?.text];
   for (const value of candidates) {
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
+    if (typeof value === 'string' && value.trim()) return value.trim();
   }
   return null;
 }
 
 function extractSessionId(data) {
   if (!data || typeof data !== 'object') return null;
-  return (
-    data.sessionId || data.session_id || data.sid ||
-    data.result?.sessionId || data.result?.session_id || data.result?.sid ||
-    data.data?.sessionId || data.data?.session_id || data.data?.sid ||
-    null
-  );
+  return data.sessionId || data.session_id || data.sid || null;
 }
 
 async function askAI(prompt, sessionId = null) {
@@ -203,30 +105,18 @@ async function askAI(prompt, sessionId = null) {
     const params = { text: prompt };
     if (sessionId) params.sessionId = sessionId;
 
-    const response = await axios.get(
-      'https://api.neosoft.best/api/ai/gemini',
-      {
-        params,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 Chrome/151.0.0.0 Mobile Safari/537.36',
-          Accept: 'application/json, text/plain, */*'
-        },
-        timeout: 60000,
-        validateStatus: status => status >= 200 && status < 500
-      }
-    );
+    const response = await axios.get('https://api.neosoft.best/api/ai/gemini', {
+      params,
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      timeout: 60000,
+      validateStatus: status => status >= 200 && status < 500
+    });
 
-    const data = response.data;
     if (response.status >= 400) return { reply: null, sessionId: null };
-
-    const reply = extractAIReply(data);
-    const newSessionId = extractSessionId(data);
-
-    if (!reply) {
-      return { reply: null, sessionId: newSessionId || sessionId || null };
-    }
-
-    return { reply, sessionId: newSessionId || sessionId || null };
+    return {
+      reply: extractAIReply(response.data),
+      sessionId: extractSessionId(response.data) || sessionId || null
+    };
   } catch (e) {
     return { reply: null, sessionId: null };
   }
@@ -235,7 +125,7 @@ async function askAI(prompt, sessionId = null) {
 cmd({
     pattern: "anya",
     alias: ["autogpt", "aichat"],
-    desc: "AutoGPT Anya + Vision with FATIMA-MD style",
+    desc: "AutoGPT Anya + Vision with Roman Urdu/English style",
     category: "ai",
     react: "💬",
     filename: __filename
@@ -252,10 +142,6 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply, usedP
 
         if (voMsg?.imageMessage) {
             if (!text) text = voMsg.imageMessage.caption || '';
-            const voMentions = voMsg.imageMessage.contextInfo?.mentionedJid || [];
-            voMentions.forEach(jid => {
-                if (!mentioned.includes(jid)) mentioned.push(jid);
-            });
         }
 
         if (!text && !m.message?.imageMessage && !voMsg?.imageMessage && !m.quoted?.message?.imageMessage) {
@@ -264,27 +150,15 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply, usedP
                 `║   🤖 FATIMA-MD ANYA 🤖    \n` +
                 `╚════════════════════════╝\n\n` +
                 `❌ *Kripya apna sawal ya prompt dein!*\n\n` +
-                `> 📌 *Example:* \`${usedPrefix + command} halo anya\`\n` +
+                `> 📌 *Example:* \`${usedPrefix + command} hello anya\`\n` +
                 `> ⚡ *Version:* \`12.00\``
             );
         }
 
         await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
 
-        const botJid = conn.user?.jid || conn.user?.id;
-        const botNumber = getBareNumber(botJid);
-
         const cleanText = text.replace(/@\d+/g, '').trim();
-
-        let senderName = m.pushName || '';
-        if (!senderName) {
-            try {
-                senderName = await conn.getName(m.sender);
-            } catch {
-                senderName = 'User';
-            }
-        }
-        if (!senderName) senderName = 'User';
+        let senderName = m.pushName || 'User';
 
         let imageContext = '';
         try {
@@ -299,10 +173,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply, usedP
                     if (qMsg.imageMessage) {
                         imageMessage = qMsg.imageMessage;
                     } else {
-                        const qVo =
-                            qMsg.viewOnceMessage?.message ||
-                            qMsg.viewOnceMessageV2?.message ||
-                            qMsg.viewOnceMessageV2Extension?.message;
+                        const qVo = qMsg.viewOnceMessage?.message || qMsg.viewOnceMessageV2?.message;
                         if (qVo?.imageMessage) imageMessage = qVo.imageMessage;
                     }
                 }
@@ -317,104 +188,59 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply, usedP
 
                 if (buffer.length) {
                     const aiVision = new AskMe();
-                    const visionPrompt = cleanText || 'Tolong jelaskan secara detail gambar apa ini?';
+                    const visionPrompt = cleanText || 'Describe what is in this image in detail';
                     const visionResultObj = await aiVision.chat(visionPrompt, { image: buffer });
                     const visionResult = visionResultObj?.msg;
 
                     if (visionResult) {
-                        imageContext = `\nHASIL ANALISIS GAMBAR:\n${visionResult}\n`;
+                        imageContext = `\nIMAGE ANALYSIS RESULT:\n${visionResult}\n`;
                     }
                 }
             }
         } catch (e) {
-            imageContext = `\nCATATAN VISION:\nUser mengirim sebuah gambar, tetapi sistem Vision gagal membaca gambar tersebut.\n`;
+            imageContext = `\nNOTE: User sent an image, but vision failed to read it.\n`;
         }
 
-        if (!global.groupContext[from]) global.groupContext[from] = [];
-        global.groupContext[from].push({
-            sender: senderName,
-            text: cleanText || '[Mengirim gambar]'
-        });
-        global.groupContext[from] = global.groupContext[from].slice(-15);
-
         const senderNumber = getBareNumber(m.sender);
-        const ownerNumber = getBareNumber(global.ownerNumber || '');
-        const isOwnerReal = senderNumber === ownerNumber;
-
         const sid = `${from}:${senderNumber}`;
-        const session = global.aiSessions[sid] || {
-            history: [],
-            lastTopic: '',
-            neoSessionId: null
-        };
+        const session = global.aiSessions[sid] || { history: [], lastTopic: '', neoSessionId: null };
 
         if (!Array.isArray(session.history)) session.history = [];
         const history = session.history;
-
-        const ownerName = global.ownerName || 'Hamm';
-        const ownerContext = isOwnerReal
-            ? `\nSTATUS USER:\n- User yang sedang berbicara ini BENAR-BENAR ${ownerName}.\n- Nomor asli owner/developer Anya adalah @${global.ownerNumber}.\n`
-            : `\nSTATUS USER:\n- User yang sedang berbicara ini BUKAN ${ownerName}.\n`;
-
-        const recentContext = (global.groupContext[from] || [])
-            .map(v => `${v.sender}: ${v.text}`)
-            .join('\n');
-
-        let replyInfo = '';
-        if (m.quoted) {
-            let quotedName = m.quoted.sender;
-            try {
-                quotedName = await conn.getName(m.quoted.sender) || m.quoted.sender;
-            } catch {}
-            const quotedText = m.quoted.text || m.quoted.caption || '[Pesan media]';
-            replyInfo = `\nPESAN YANG DIREPLY:\n${quotedName}: ${quotedText}\n`;
-        }
 
         const historyText = history.slice(-8).join('\n');
 
         const fullPrompt = `
 ${SYSTEM_PROMPT}
-${ownerContext}
-
-TOPIK SEBELUMNYA:
-${session.lastTopic || '-'}
-
-KONTEKS GRUP:
-${recentContext || '-'}
-${replyInfo}
 ${imageContext}
 
-ATURAN TAMBAHAN:
-- Jika ada HASIL ANALISIS GAMBAR, gunakan hasil tersebut sebagai referensi utama.
-- Jawab seperti Anya sedang chatting biasa.
-
-RIWAYAT PERCAKAPAN:
+CONVERSATION HISTORY:
 ${historyText || '-'}
 
 User (${senderName}):
-${cleanText || '[User mengirim gambar]'}
+${cleanText || '[User sent an image]'}
 
-Anya:
+Anya (Reply in Roman Urdu or English):
 `.trim();
 
         const aiResult = await askAI(fullPrompt, session.neoSessionId);
         const aiReply = aiResult?.reply;
 
         if (!aiReply) {
-            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-            return reply("❌ *NeoSoft AI se koi jawab nahi mila!*");
+            await conn.sendMessage(from, { react: { text: "❌", key: mek.key }</thead> });
+            return reply("❌ *AI se koi response nahi mila!*");
         }
 
         const neoSessionId = aiResult?.sessionId || session.neoSessionId || null;
 
-        await sleep(600);
+        await sleep(400);
 
-        history.push(`User: ${cleanText || '[Mengirim gambar]'}`);
+        history.push(`User: ${cleanText || '[Image]'}`);
         history.push(`Anya: ${aiReply}`);
 
         global.aiSessions[sid] = {
             history: history.slice(-8),
-            lastTopic: cleanText || session.lastTopic || '[Gambar]',
+            lastTopic: cleanText || session.lastTopic || '[Image]',
             neoSessionId
         };
 
