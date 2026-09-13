@@ -1,4 +1,4 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ULTRA PRO MAX MENU WITH BUTTONS
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ULTRA PRO MAX MENU WITH WORKING LIST BUTTON
 
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -47,7 +47,7 @@ cmd({
     pattern: "menu",
     alias: ["m", "help", "allmenu", "fullmenu"],
     use: '.menu',
-    desc: "Show all bot commands with supreme FATIMA-MD design and buttons",
+    desc: "Show all bot commands with supreme FATIMA-MD design and working menu button",
     category: "main",
     react: "👑",
     filename: __filename
@@ -117,51 +117,38 @@ ${menuSections}
             imageToUse = localImagePath;
         }
 
-        // ================= BUTTONS CONFIGURATION =================
-        const buttons = [
+        // ================= 100% WORKING SECTION LIST BUTTON =================
+        const sections = [
             {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "🏓 PING",
-                    id: `${PREFIX}ping`
-                })
-            },
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "👤 OWNER",
-                    id: `${PREFIX}owner`
-                })
-            },
-            {
-                name: "quick_reply",
-                buttonParamsJson: JSON.stringify({
-                    display_text: "📊 SYSTEM STATUS",
-                    id: `${PREFIX}system`
-                })
+                title: "👑 FATIMA-MD QUICK MENU",
+                rows: [
+                    { title: "🏓 Check Speed", rowId: `${PREFIX}ping`, description: "Bot ki speed aur latency check karein" },
+                    { title: "👤 Owner Info", rowId: `${PREFIX}owner`, description: "Bot owner se contact karein" },
+                    { title: "📊 System Status", rowId: `${PREFIX}system`, description: "Bot RAM aur server status dekhein" }
+                ]
             }
         ];
 
-        const interactiveMessage = {
-            body: { text: dec },
-            footer: { text: "ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ" },
-            header: {
-                title: "👑 FATIMA-MD MENU 👑",
-                hasMediaAttachment: true,
-                imageMessage: (await conn.sendMessage(from, { image: { url: imageToUse } })).message.imageMessage
-            },
-            nativeFlowMessage: {
-                buttons: buttons
+        const listMessage = {
+            text: dec,
+            footer: "ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ",
+            title: "👑 FATIMA-MD BOT MENU 👑",
+            buttonText: "🔘 CLICK HERE FOR OPTIONS",
+            sections: sections,
+            image: { url: imageToUse },
+            contextInfo: { 
+                mentionedJid: [m.sender], 
+                forwardingScore: 999, 
+                isForwarded: true, 
+                forwardedNewsletterMessageInfo: { 
+                    newsletterJid: '120363412031212190@newsletter', 
+                    newsletterName: 'ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ', 
+                    serverMessageId: 143 
+                } 
             }
         };
 
-        await conn.relayMessage(from, {
-            viewOnceMessage: {
-                message: {
-                    interactiveMessage: interactiveMessage
-                }
-            }
-        }, { quoted: mek });
+        await conn.sendMessage(from, listMessage, { quoted: mek });
 
     } catch (e) { 
         console.error("Menu Command Error:", e);
