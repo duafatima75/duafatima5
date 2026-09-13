@@ -15,15 +15,32 @@ cmd({
 },
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => {
     try {
-        // Agar query (q) nahi hai, lekin agar koi quoted message ya body me link hai toh use uthane ki koshish karein
+        // Full message body ya args se link extract karne ke liye robust logic
         let targetUrl = q;
-        if (!targetUrl && quoted && quoted.text) {
-            const match = quoted.text.match(/https:\/\/whatsapp\.com\/channel\/[^\s]+/);
-            if (match) targetUrl = match[0];
+        
+        // Agar q me direct link nahi hai, toh poore message body se whatsapp channel link dhundho
+        if (!targetUrl || !targetUrl.includes('whatsapp.com/channel/')) {
+            const fullText = body || m.text || '';
+            const match = fullText.match(/https:\/\/whatsapp\.com\/channel\/[a-zA-Z0-9_-]+/);
+            if (match) {
+                targetUrl = match[0];
+            }
         }
-        if (!targetUrl && body) {
-            const match = body.match(/https:\/\/whatsapp\.com\/channel\/[^\s]+/);
-            if (match) targetUrl = match[0];
+
+        // Agar quoted message hai aur usme link hai
+        if (!targetUrl && quoted && quoted.text) {
+            const matchQuoted = quoted.text.match(/https:\/\/whatsapp\.com\/channel\/[a-zA-Z0-9_-]+/);
+            if (matchQuoted) {
+                targetUrl = matchQuoted[0];
+            }
+        }
+
+        // Agar args array me koi link hai
+        if (!targetUrl && args && args.length > 0) {
+            const foundArg = args.find(arg => arg.includes('whatsapp.com/channel/'));
+            if (foundArg) {
+                targetUrl = foundArg;
+            }
         }
 
         if (!targetUrl) {
