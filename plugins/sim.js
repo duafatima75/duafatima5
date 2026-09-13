@@ -31,18 +31,24 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const url = `https://api.princetechn.com/api/download/apkdl?apikey=prince&appName=${encodeURIComponent(q)}`;
         const response = await axios.get(url, { timeout: 60000 });
         
-        if (response.data && (response.data.status || response.data.result || response.data.download_link || response.data.dllink)) {
-            const resData = response.data.result || response.data;
+        // Debugging ke liye console log check karein agar link na mile
+        console.log("API Response:", response.data);
+
+        if (response.data) {
+            // Check different possible response structures for API data
+            const resData = response.data.result || response.data.data || response.data;
             
-            const appName = resData.name || resData.appName || q;
+            const appName = resData.name || resData.appName || resData.title || q;
             const appSize = resData.size || resData.fileSize || "Unknown";
-            const appPackage = resData.package || resData.bundleId || "Unknown";
-            const downloadUrl = resData.dllink || resData.download_link || resData.download || resData.link;
-            const appIcon = resData.icon || resData.image || "";
+            const appPackage = resData.package || resData.bundleId || resData.packagename || "Unknown";
+            
+            // Sabhi possible download link keys ko target kiya hai
+            const downloadUrl = resData.dllink || resData.download_link || resData.download || resData.link || resData.url;
+            const appIcon = resData.icon || resData.image || resData.thumbnail || "";
 
             if (!downloadUrl) {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply("❌ *App download link nahi mila!*");
+                return reply(`❌ *App download link nahi mila!* \n\n\`\`\`${JSON.stringify(response.data, null, 2)}\`\`\``);
             }
 
             const appBox = `
