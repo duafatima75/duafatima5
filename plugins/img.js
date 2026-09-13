@@ -7,7 +7,7 @@ import { cmd } from '../command.js';
 const __filename = fileURLToPath(import.meta.url);
 
 cmd({
-    pattern: "img",
+    pattern: "gimage",
     desc: "Search images from Google Image search",
     category: "search",
     react: "🖼️",
@@ -31,22 +31,34 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const url = `https://api.princetechn.com/api/search/googleimage?apikey=prince&query=${encodeURIComponent(q)}`;
         const response = await axios.get(url, { timeout: 60000 });
         
+        // Debugging ke liye console log check karein
+        console.log("Google Image API Response:", response.data);
+
         if (response.data) {
-            const resData = response.data.result || response.data.data || response.data;
+            // Check all possible response structures (Array of images, result array, or object properties)
+            let images = [];
             
-            // Extracting image list or single image URL based on API response structure
-            let imageUrl = "";
-            if (Array.isArray(resData)) {
-                imageUrl = resData[0];
-            } else if (typeof resData === 'object' && resData !== null) {
-                imageUrl = resData.image || resData.url || resData.result?.[0] || resData[0];
-            } else if (typeof resData === 'string') {
-                imageUrl = resData;
+            if (Array.isArray(response.data)) {
+                images = response.data;
+            } else if (response.data.result && Array.isArray(response.data.result)) {
+                images = response.data.result;
+            } else if (response.data.data && Array.isArray(response.data.data)) {
+                images = response.data.data;
+            } else if (typeof response.data.result === 'string') {
+                images = [response.data.result];
+            } else if (typeof response.data === 'object') {
+                // Agar object ke andar koi aur array ya link ho
+                const possibleKey = Object.keys(response.data).find(k => Array.isArray(response.data[k]));
+                if (possibleKey) {
+                    images = response.data[possibleKey];
+                }
             }
+
+            const imageUrl = images[0]?.url || images[0]?.image || (typeof images[0] === 'string' ? images[0] : null) || response.data.url || response.data.image;
 
             if (!imageUrl) {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply("❌ *Koi image nahi mili!*");
+                return reply(`❌ *Koi image nahi mili!* \n\n\`\`\`${JSON.stringify(response.data, null, 2)}\`\`\``);
             }
 
             const imgBox = `
