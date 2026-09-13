@@ -56,7 +56,6 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
                 return reply(`❌ *Wallpaper link extract nahi ho saka!*`);
             }
 
-            // Agar comma-separated links hain toh unhein array me tod kar sabse pehla link saaf taur par lein
             const linksArray = rawUrl.split(',').map(link => link.trim());
             const wallpaperUrl = linksArray[0];
 
@@ -87,20 +86,10 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         }
 
     } catch (e) {
-        console.error("Wallpaper Command Error:", e);
-        await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+        // Console log me error print nahi hoga taaki Heroku/Terminal logs me na dikhe
+        // console.error("Wallpaper Command Error:", e);
         
-        // Error ko style ke sath show karne ke liye KAMRAN-MD box format
-        const errorBox = `
-╔════════════════════════╗
-║   ❌ WALLPAPER ERROR ❌   
-╚════════════════════════╝
-
-⚠️ *Error Details:* \`\`\`${e.message}\`\`\`
-
-> ⚡ *Version:* \`12.00\`
-> 👑 *Powered by DOCTOR MD*`.trim();
-
-        return reply(errorBox);
+        await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+        return reply("❌ *Kuch galat ho gaya, kripya thodi der baad koshish karein!*");
     }
 });
