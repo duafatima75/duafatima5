@@ -7,10 +7,10 @@ import { cmd } from '../command.js';
 const __filename = fileURLToPath(import.meta.url);
 
 cmd({
-    pattern: "gimage",
-    desc: "Search images from Google Image search",
+    pattern: "wallpaper",
+    desc: "Search high quality wallpapers",
     category: "search",
-    react: "🖼️",
+    react: "🌄",
     filename: __filename
 },
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => {
@@ -18,52 +18,50 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         if (!q) {
             return reply(
                 `╔════════════════════════╗\n` +
-                `║   🖼️ KAMRAN-MD GOOGLE IMAGE 🖼️   \n` +
+                `║   🌄 KAMRAN-MD WALLPAPER 🌄   \n` +
                 `╚════════════════════════╝\n\n` +
-                `❌ *Kripya image search ke liye query dein!*\n\n` +
-                `> 📌 *Example:* \`.gimage Cute Cat\`\n` +
+                `❌ *Kripya wallpaper search ke liye query dein!*\n\n` +
+                `> 📌 *Example:* \`.wallpaper Sunset Scenes\`\n` +
                 `> ⚡ *Version:* \`12.00\``
             );
         }
 
         await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
 
-        const url = `https://api.princetechn.com/api/search/googleimage?apikey=prince&query=${encodeURIComponent(q)}`;
+        const url = `https://api.princetechn.com/api/search/wallpaper?apikey=prince&query=${encodeURIComponent(q)}`;
         const response = await axios.get(url, { timeout: 60000 });
         
         // Debugging ke liye console log check karein
-        console.log("Google Image API Response:", response.data);
+        console.log("Wallpaper API Response:", response.data);
 
         if (response.data) {
-            // Check all possible response structures (Array of images, result array, or object properties)
-            let images = [];
+            let wallpapers = [];
             
             if (Array.isArray(response.data)) {
-                images = response.data;
+                wallpapers = response.data;
             } else if (response.data.result && Array.isArray(response.data.result)) {
-                images = response.data.result;
+                wallpapers = response.data.result;
             } else if (response.data.data && Array.isArray(response.data.data)) {
-                images = response.data.data;
+                wallpapers = response.data.data;
             } else if (typeof response.data.result === 'string') {
-                images = [response.data.result];
+                wallpapers = [response.data.result];
             } else if (typeof response.data === 'object') {
-                // Agar object ke andar koi aur array ya link ho
                 const possibleKey = Object.keys(response.data).find(k => Array.isArray(response.data[k]));
                 if (possibleKey) {
-                    images = response.data[possibleKey];
+                    wallpapers = response.data[possibleKey];
                 }
             }
 
-            const imageUrl = images[0]?.url || images[0]?.image || (typeof images[0] === 'string' ? images[0] : null) || response.data.url || response.data.image;
+            const wallpaperUrl = wallpapers[0]?.url || wallpapers[0]?.image || wallpapers[0]?.link || (typeof wallpapers[0] === 'string' ? wallpapers[0] : null) || response.data.url || response.data.image;
 
-            if (!imageUrl) {
+            if (!wallpaperUrl) {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply(`❌ *Koi image nahi mili!* \n\n\`\`\`${JSON.stringify(response.data, null, 2)}\`\`\``);
+                return reply(`❌ *Koi wallpaper nahi mila!* \n\n\`\`\`${JSON.stringify(response.data, null, 2)}\`\`\``);
             }
 
-            const imgBox = `
+            const wpBox = `
 ╔════════════════════════╗
-║   🖼️ GOOGLE IMAGE SEARCH   
+║   🌄 WALLPAPER SEARCH   
 ╚════════════════════════╝
 
 🔍 *Query:* ${q}
@@ -72,8 +70,8 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
 > 👑 *Powered by DOCTOR MD*`.trim();
 
             await conn.sendMessage(from, { 
-                image: { url: imageUrl }, 
-                caption: imgBox 
+                image: { url: wallpaperUrl }, 
+                caption: wpBox 
             }, { quoted: mek });
 
             await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
@@ -83,7 +81,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         }
 
     } catch (e) {
-        console.error("Google Image Command Error:", e);
+        console.error("Wallpaper Command Error:", e);
         await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
         return reply(`❌ *Error occurred:* \`\`\`${e.message}\`\`\``);
     }
