@@ -1,95 +1,78 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍดย
+// DR KAMRAN 
 
 import { fileURLToPath } from 'url';
 import axios from 'axios';
-import FormData from 'form-data';
 import { cmd } from '../command.js';
 
 const __filename = fileURLToPath(import.meta.url);
 
-const AgungDevX = {
-  config: {
-    base: 'https://text2video.aritek.app',
-    cipher: 'hbMcgZLlzvghRlLbPcTbCpfcQKM0PcU0zhPcTlOFMxBZ1oLmruzlVp9remPgi0QWP0QW',
-    shift: 3,
-    ua: 'AgungDevX Coder/1.0.0'
-  },
-
-  _decryptToken() {
-    const { cipher, shift } = this.config;
-    return [...cipher].map(c =>
-      /[a-z]/.test(c)
-        ? String.fromCharCode((c.charCodeAt(0) - 97 - shift + 26) % 26 + 97)
-        : /[A-Z]/.test(c)
-        ? String.fromCharCode((c.charCodeAt(0) - 65 - shift + 26) % 26 + 65)
-        : c
-    ).join('');
-  },
-
-  async text2img(prompt) {
-    if (!prompt) throw 'Prompt is empty';
-    const token = this._decryptToken();
-    const form = new FormData();
-    form.append('prompt', prompt);
-    form.append('token', token);
-
-    const { data } = await axios.post(
-      `${this.config.base}/text2img`,
-      form,
-      {
-        headers: {
-          'user-agent': this.config.ua,
-          authorization: token,
-          ...form.getHeaders()
-        }
-      }
-    );
-
-    if (data.code !== 0 || !data.url) throw 'Failed to generate image';
-    return data.url.trim();
-  }
-};
-
 cmd({
-    pattern: "txt2img",
-    alias: ["t2img", "img"],
-    desc: "Generate AI Image from text",
-    category: "ai",
-    react: "🎨",
-    filename: __filename,
-}, async (conn, mek, m, { from, text, reply }) => {
-    if (!text) return reply(
-        `╔════════════════════════╗\n` +
-        `║   🎨 FATIMA-MD AI IMG  🎨   \n` +
-        `╚════════════════════════╝\n\n` +
-        `❌ *Kripya prompt ya text dein!*\n\n` +
-        `> 📌 *Example:* \`.txt2img anime girl in forest\`\n` +
-        `> ⚡ *Version:* \`12.00\``
-    );
-    
+    pattern: "img",
+    desc: "Search images from Google Image search",
+    category: "search",
+    react: "🖼️",
+    filename: __filename
+},
+async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => {
     try {
-        await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
-        const img = await AgungDevX.text2img(text);
-        
-        const captionBox = `
-╔════════════════════════╗
-║   🎨 AI IMAGE GENERATOR 🎨  
-╚════════════════════════╝
- 🖌️ *Prompt:* \`${text}\`
- 🚀 *Status:* \`Successfully Generated\`
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-> ⚡ *Version:* \`12.00\`
-> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
+        if (!q) {
+            return reply(
+                `╔════════════════════════╗\n` +
+                `║   🖼️ KAMRAN-MD GOOGLE IMAGE 🖼️   \n` +
+                `╚════════════════════════╝\n\n` +
+                `❌ *Kripya image search ke liye query dein!*\n\n` +
+                `> 📌 *Example:* \`.gimage Cute Cat\`\n` +
+                `> ⚡ *Version:* \`12.00\``
+            );
+        }
 
-        await conn.sendMessage(from, { 
-            image: { url: img }, 
-            caption: captionBox
-        }, { quoted: mek });
+        await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
+
+        const url = `https://api.princetechn.com/api/search/googleimage?apikey=prince&query=${encodeURIComponent(q)}`;
+        const response = await axios.get(url, { timeout: 60000 });
         
-        await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
+        if (response.data) {
+            const resData = response.data.result || response.data.data || response.data;
+            
+            // Extracting image list or single image URL based on API response structure
+            let imageUrl = "";
+            if (Array.isArray(resData)) {
+                imageUrl = resData[0];
+            } else if (typeof resData === 'object' && resData !== null) {
+                imageUrl = resData.image || resData.url || resData.result?.[0] || resData[0];
+            } else if (typeof resData === 'string') {
+                imageUrl = resData;
+            }
+
+            if (!imageUrl) {
+                await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+                return reply("❌ *Koi image nahi mili!*");
+            }
+
+            const imgBox = `
+╔════════════════════════╗
+║   🖼️ GOOGLE IMAGE SEARCH   
+╚════════════════════════╝
+
+🔍 *Query:* ${q}
+
+> ⚡ *Version:* \`12.00\`
+> 👑 *Powered by DOCTOR MD*`.trim();
+
+            await conn.sendMessage(from, { 
+                image: { url: imageUrl }, 
+                caption: imgBox 
+            }, { quoted: mek });
+
+            await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
+        } else {
+            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+            return reply("❌ *API se koi response nahi mila!*");
+        }
+
     } catch (e) {
-        console.error("Txt2Img Error:", e);
+        console.error("Google Image Command Error:", e);
         await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-        reply(`❌ *Error:* ${e}`);
+        return reply(`❌ *Error occurred:* \`\`\`${e.message}\`\`\``);
     }
 });
