@@ -21,7 +21,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
                 `║   🌄 KAMRAN-MD WALLPAPER 🌄   \n` +
                 `╚════════════════════════╝\n\n` +
                 `❌ *Kripya wallpaper search ke liye query dein!*\n\n` +
-                `> 📌 *Example:* \`.wallpaper Sunset\`\n` +
+                `> 📌 *Example:* \`.wallpaper Sunset Scenes\`\n` +
                 `> ⚡ *Version:* \`12.00\``
             );
         }
@@ -49,15 +49,15 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
                 return reply("❌ *Is query par koi wallpaper nahi mila, kuch aur search karein!*");
             }
 
-            // Safe extraction supporting object properties or direct strings
-            let rawUrl = wallpapers[0]?.url || wallpapers[0]?.image || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : '');
+            // Image ke mutabiq `image` property ek string hai jisme multiple URLs comma se separated hain
+            let rawUrl = wallpapers[0]?.image || wallpapers[0]?.url || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : '');
 
             if (!rawUrl || typeof rawUrl !== 'string') {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
                 return reply(`❌ *Wallpaper link extract nahi ho saka!*`);
             }
 
-            // Safe split check
+            // Pehla URL nikalne ke liye agar comma ho toh split kar lo
             const wallpaperUrl = rawUrl.includes(',') ? rawUrl.split(',')[0].trim() : rawUrl.trim();
 
             const wpBox = `
