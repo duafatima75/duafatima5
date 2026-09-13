@@ -31,24 +31,20 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const url = `https://api.princetechn.com/api/download/apkdl?apikey=prince&appName=${encodeURIComponent(q)}`;
         const response = await axios.get(url, { timeout: 60000 });
         
-        // Debugging ke liye console log check karein agar link na mile
-        console.log("API Response:", response.data);
-
         if (response.data) {
-            // Check different possible response structures for API data
-            const resData = response.data.result || response.data.data || response.data;
+            const resData = response.data.result || response.data;
             
-            const appName = resData.name || resData.appName || resData.title || q;
+            const appName = resData.appname || resData.name || resData.appName || q;
             const appSize = resData.size || resData.fileSize || "Unknown";
             const appPackage = resData.package || resData.bundleId || resData.packagename || "Unknown";
             
-            // Sabhi possible download link keys ko target kiya hai
-            const downloadUrl = resData.dllink || resData.download_link || resData.download || resData.link || resData.url;
-            const appIcon = resData.icon || resData.image || resData.thumbnail || "";
+            // Image ke JSON ke mutabiq keys match kar di hain (`download_url` aur `appicon`)
+            const downloadUrl = resData.download_url || resData.dllink || resData.download || resData.link || resData.url;
+            const appIcon = resData.appicon || resData.icon || resData.image || "";
 
             if (!downloadUrl) {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply(`❌ *App download link nahi mila!* \n\n\`\`\`${JSON.stringify(response.data, null, 2)}\`\`\``);
+                return reply(`❌ *App download link nahi mila!*`);
             }
 
             const appBox = `
