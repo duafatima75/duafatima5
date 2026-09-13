@@ -7,10 +7,10 @@ import { cmd } from '../command.js';
 const __filename = fileURLToPath(import.meta.url);
 
 cmd({
-    pattern: "wallpaper",
-    desc: "Search high quality wallpapers",
+    pattern: "playstore",
+    desc: "Search applications on Play Store",
     category: "search",
-    react: "🌄",
+    react: "📱",
     filename: __filename
 },
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => {
@@ -18,66 +18,77 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         if (!q) {
             return reply(
                 `╔════════════════════════╗\n` +
-                `║   🌄 KAMRAN-MD WALLPAPER 🌄   \n` +
+                `║   📱 KAMRAN-MD PLAYSTORE 📱   \n` +
                 `╚════════════════════════╝\n\n` +
-                `❌ *Kripya wallpaper search ke liye query dein!*\n\n` +
-                `> 📌 *Example:* \`.wallpaper Sunset Scenes\`\n` +
+                `❌ *Kripya Play Store search ke liye app ka naam dein!*\n\n` +
+                `> 📌 *Example:* \`.playstore WhatsApp\`\n` +
                 `> ⚡ *Version:* \`12.00\``
             );
         }
 
         await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
 
-        const url = `https://api.princetechn.com/api/search/wallpaper?apikey=prince&query=${encodeURIComponent(q)}`;
+        const url = `https://api.princetechn.com/api/search/playstore?apikey=prince&query=${encodeURIComponent(q)}`;
         const response = await axios.get(url, { timeout: 60000 });
         
         if (response.data) {
-            let wallpapers = [];
+            let apps = [];
             
             if (response.data.results && Array.isArray(response.data.results)) {
-                wallpapers = response.data.results;
+                apps = response.data.results;
             } else if (Array.isArray(response.data)) {
-                wallpapers = response.data;
+                apps = response.data;
             } else if (response.data.result && Array.isArray(response.data.result)) {
-                wallpapers = response.data.result;
+                apps = response.data.result;
             } else if (response.data.data && Array.isArray(response.data.data)) {
-                wallpapers = response.data.data;
+                apps = response.data.data;
             }
 
-            if (wallpapers.length === 0) {
+            if (apps.length === 0) {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply("❌ *Is query par koi wallpaper nahi mila, kuch aur search karein!*");
+                return reply("❌ *Is query par koi app nahi mili!*");
             }
 
-            let rawUrl = wallpapers[0]?.image || wallpapers[0]?.url || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : '');
+            const appInfo = apps[0];
+            const appName = appInfo.name || appInfo.title || q;
+            const appID = appInfo.appId || appInfo.package || "Unknown";
+            const appDeveloper = appInfo.developer || appInfo.publisher || "Unknown";
+            const appRating = appInfo.rating || appInfo.score || "N/A";
+            const appLink = appInfo.url || appInfo.link || "";
+            const appIcon = appInfo.icon || appInfo.image || "";
 
-            if (!rawUrl || typeof rawUrl !== 'string') {
-                await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply(`❌ *Wallpaper link extract nahi ho saka!*`);
-            }
-
-            const linksArray = rawUrl.split(',').map(link => link.trim());
-            const wallpaperUrl = linksArray[0];
-
-            if (!wallpaperUrl) {
-                await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply(`❌ *Valid wallpaper URL nahi mila!*`);
-            }
-
-            const wpBox = `
+            const playStoreBox = `
 ╔════════════════════════╗
-║   🌄 WALLPAPER SEARCH   
+║   📱 PLAYSTORE SEARCH APP   
 ╚════════════════════════╝
 
-🔍 *Query:* ${q}
+📌 *App Name:* ${appName}
+👤 *Developer:* ${appDeveloper}
+⭐ *Rating:* ${appRating}
+📦 *Package ID:* \`${appID}\`
+🔗 *Link:* ${appLink}
 
 > ⚡ *Version:* \`12.00\`
 > 👑 *Powered by DOCTOR MD*`.trim();
 
-            await conn.sendMessage(from, { 
-                image: { url: wallpaperUrl }, 
-                caption: wpBox 
-            }, { quoted: mek });
+            if (appIcon) {
+                await conn.sendMessage(from, { 
+                    image: { url: appIcon }, 
+                    caption: playStoreBox 
+                }, { quoted: mek });
+            } else {
+                await reply(playStoreBox, {
+                    contextInfo: { 
+                        forwardingScore: 999, 
+                        isForwarded: true, 
+                        forwardedNewsletterMessageInfo: { 
+                            newsletterJid: '1203634120312190@newsletter', 
+                            newsletterName: 'DR KAMRAN', 
+                            serverMessageId: 143 
+                        } 
+                    }
+                });
+            }
 
             await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
         } else {
@@ -86,9 +97,6 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         }
 
     } catch (e) {
-        // Console log me error print nahi hoga taaki Heroku/Terminal logs me na dikhe
-        // console.error("Wallpaper Command Error:", e);
-        
         await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
         return reply("❌ *Kuch galat ho gaya, kripya thodi der baad koshish karein!*");
     }
