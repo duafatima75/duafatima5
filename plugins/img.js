@@ -49,7 +49,6 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
                 return reply("❌ *Is query par koi wallpaper nahi mila, kuch aur search karein!*");
             }
 
-            // Image ke mutabiq `image` property ek string hai jisme multiple URLs comma se separated hain
             let rawUrl = wallpapers[0]?.image || wallpapers[0]?.url || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : '');
 
             if (!rawUrl || typeof rawUrl !== 'string') {
@@ -57,8 +56,14 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
                 return reply(`❌ *Wallpaper link extract nahi ho saka!*`);
             }
 
-            // Pehla URL nikalne ke liye agar comma ho toh split kar lo
-            const wallpaperUrl = rawUrl.includes(',') ? rawUrl.split(',')[0].trim() : rawUrl.trim();
+            // Agar comma-separated links hain toh unhein array me tod kar sabse pehla link saaf taur par lein
+            const linksArray = rawUrl.split(',').map(link => link.trim());
+            const wallpaperUrl = linksArray[0];
+
+            if (!wallpaperUrl) {
+                await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+                return reply(`❌ *Valid wallpaper URL nahi mila!*`);
+            }
 
             const wpBox = `
 ╔════════════════════════╗
@@ -84,6 +89,18 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
     } catch (e) {
         console.error("Wallpaper Command Error:", e);
         await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-        return reply(`❌ *Error occurred:* \`\`\`${e.message}\`\`\``);
+        
+        // Error ko style ke sath show karne ke liye KAMRAN-MD box format
+        const errorBox = `
+╔════════════════════════╗
+║   ❌ WALLPAPER ERROR ❌   
+╚════════════════════════╝
+
+⚠️ *Error Details:* \`\`\`${e.message}\`\`\`
+
+> ⚡ *Version:* \`12.00\`
+> 👑 *Powered by DOCTOR MD*`.trim();
+
+        return reply(errorBox);
     }
 });
