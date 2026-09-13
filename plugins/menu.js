@@ -1,8 +1,10 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ULTRA PRO MAX WORKING INTERACTIVE MENU
+// ꜰᴀᴛɪᴍᴀ-ᴍᴅ - ULTRA PRO MAX MENU WITH BUILT-IN BUTTON CLASS
 
 import { fileURLToPath } from 'url';
 import path from 'path';
 import axios from 'axios';
+import sharp from 'sharp';
+import { generateWAMessageFromContent, prepareWAMessageMedia } from 'baileys';
 import { cmd, commands } from '../command.js';
 import config from '../config.js';
 import { runtime } from '../lib/functions.js';
@@ -10,6 +12,149 @@ import { runtime } from '../lib/functions.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ================= BUILT-IN BUTTON BUILDERS =================
+class BaseBuilder {
+    constructor() {
+        this._title = '';
+        this._subtitle = '';
+        this._body = '';
+        this._footer = '';
+        this._contextInfo = {};
+        this._extraPayload = {};
+    }
+
+    setTitle(title) {
+        this._title = title;
+        return this;
+    }
+
+    setSubtitle(subtitle) {
+        this._subtitle = subtitle;
+        return this;
+    }
+
+    setBody(body) {
+        this._body = body;
+        return this;
+    }
+
+    setFooter(footer) {
+        this._footer = footer;
+        return this;
+    }
+
+    setContextInfo(obj) {
+        this._contextInfo = obj;
+        return this;
+    }
+}
+
+class InlineButton extends BaseBuilder {
+    #client;
+
+    constructor(client) {
+        super();
+        if (!client) throw new Error('Socket/Client is required');
+        this.#client = client;
+        this._buttons = [];
+        this._data = null;
+        this._currentSelectionIndex = -1;
+        this._currentSectionIndex = -1;
+    }
+
+    setImage(path) {
+        if (!path) return this;
+        Buffer.isBuffer(path) ? (this._data = { image: path }) : (this._data = { image: { url: path } });
+        return this;
+    }
+
+    addReply(display_text = '', id = '') {
+        this._buttons.push({
+            name: 'quick_reply',
+            buttonParamsJson: JSON.stringify({ display_text, id }),
+        });
+        return this;
+    }
+
+    addSelection(title) {
+        this._buttons.push({
+            name: 'single_select',
+            buttonParamsJson: JSON.stringify({ title, sections: [] })
+        });
+        this._currentSelectionIndex = this._buttons.length - 1;
+        this._currentSectionIndex = -1;
+        return this;
+    }
+
+    makeSection(title = '', highlight_label = '') {
+        if (this._currentSelectionIndex === -1) return this;
+        const buttonParams = JSON.parse(this._buttons[this._currentSelectionIndex].buttonParamsJson);
+        buttonParams.sections.push({ title, highlight_label, rows: [] });
+        this._currentSectionIndex = buttonParams.sections.length - 1;
+        this._buttons[this._currentSelectionIndex].buttonParamsJson = JSON.stringify(buttonParams);
+        return this;
+    }
+
+    makeRow(header = '', title = '', description = '', id = '') {
+        if (this._currentSelectionIndex === -1 || this._currentSectionIndex === -1) return this;
+        const buttonParams = JSON.parse(this._buttons[this._currentSelectionIndex].buttonParamsJson);
+        buttonParams.sections[this._currentSectionIndex].rows.push({ header, title, description, id });
+        this._buttons[this._currentSelectionIndex].buttonParamsJson = JSON.stringify(buttonParams);
+        return this;
+    }
+
+    async build(jid, options = {}) {
+        const message = {
+            body: { text: this._body },
+            footer: { text: this._footer },
+            header: {
+                title: this._title,
+                subtitle: this._subtitle,
+                hasMediaAttachment: !!this._data,
+                ...(this._data ? await prepareWAMessageMedia(this._data, { upload: this.#client.waUploadToServer }).catch(() => ({})) : {}),
+            },
+            nativeFlowMessage: {
+                buttons: this._buttons,
+            },
+        };
+
+        return generateWAMessageFromContent(
+            jid,
+            {
+                ...this._extraPayload,
+                interactiveMessage: {
+                    ...message,
+                    contextInfo: this._contextInfo,
+                },
+            },
+            { ...options }
+        );
+    }
+
+    async send(jid, options = {}) {
+        const msg = await this.build(jid, options);
+        await this.#client.relayMessage(msg.key.remoteJid, msg.message, {
+            messageId: msg.key.id,
+            additionalNodes: [
+                {
+                    tag: 'biz',
+                    attrs: {},
+                    content: [
+                        {
+                            tag: 'interactive',
+                            attrs: { type: 'native_flow', v: '1' },
+                            content: [{ tag: 'native_flow', attrs: { v: '9', name: 'mixed' } }],
+                        },
+                    ],
+                },
+            ],
+            ...options,
+        });
+        return msg;
+    }
+}
+
+// ================= STYLIST & HELPER FUNCTIONS =================
 const toStylistUpper = (text) => {
     if (!text || typeof text !== 'string') return '';
     const uppercaseMap = {
@@ -43,6 +188,7 @@ const isValidImageUrl = (url) => {
     return imageExtensions.some(ext => urlLower.endsWith(ext));
 };
 
+// ================= MENU COMMAND HANDLER =================
 cmd({
     pattern: "menu",
     alias: ["m", "help", "allmenu", "fullmenu"],
@@ -88,15 +234,6 @@ async (conn, mek, m, { from, reply, userConfig }) => {
         
         const BOT_IMAGE = userConfig?.BOT_IMAGE || userConfig?.BOT_MEDIA_URL || config.BOT_IMAGE || config.BOT_MEDIA_URL;
         
-        // Quick Action Command Shortcuts
-        let quickActions = `
-╭━━━〔 🔘 *QUICK ACTIONS* 〕━━━┈⊷
-┃ 🏓 \`${PREFIX}ping\` - Check Latency
-┃ 👤 \`${PREFIX}owner\` - Owner Contact
-┃ 📊 \`${PREFIX}system\` - Bot System Status
-╰━━━━━━━━━━━━━━━━━━━━━━━━━━┈⊷
-`.trim();
-
         let dec = `
 ╭━━━〔 👑 *FATIMA-MD V12.00* 👑 〕━━━┈⊷
 ┃ 👤 *Owner:* \`${OWNER_NAME}\`
@@ -106,9 +243,6 @@ async (conn, mek, m, { from, reply, userConfig }) => {
 ┃ ⚙️ *Mode:* \`${MODE}\`
 ┃ 🏷️ *Version:* \`${VERSION}\`
 ╰━━━━━━━━━━━━━━━━━━━━━━━━━━┈⊷
-
-${quickActions}
-
 ${menuSections}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -129,30 +263,41 @@ ${menuSections}
             imageToUse = localImagePath;
         }
 
-        // Card & External Ad Reply Display (Bina crash/bug ke har jagah dikhega)
-        await conn.sendMessage(from, { 
-            image: { url: imageToUse },
-            caption: dec, 
-            contextInfo: { 
-                mentionedJid: [m.sender], 
-                forwardingScore: 999, 
+        // ================= SEND WITH BUTTONS =================
+        const btn = new InlineButton(conn)
+            .setTitle('👑 FATIMA-MD OFFICIAL MENU')
+            .setBody(dec)
+            .setFooter('ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ')
+            .setImage(imageToUse)
+            .setContextInfo({
+                mentionedJid: [m.sender],
+                forwardingScore: 999,
                 isForwarded: true,
-                externalAdReply: {
-                    title: "👑 FATIMA-MD OFFICIAL MENU 👑",
-                    body: `Prefix: ${PREFIX} | Mode: ${MODE}`,
-                    mediaType: 1,
-                    previewType: 0,
-                    renderLargerThumbnail: true,
-                    thumbnailUrl: imageToUse,
-                    sourceUrl: "https://whatsapp.com/channel/120363412031212190"
-                },
-                forwardedNewsletterMessageInfo: { 
-                    newsletterJid: '120363412031212190@newsletter', 
-                    newsletterName: 'ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ', 
-                    serverMessageId: 143 
-                } 
-            } 
-        }, { quoted: mek });
+                forwardedNewsletterMessageInfo: {
+                    newsletterJid: '120363412031212190@newsletter',
+                    newsletterName: 'ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ',
+                    serverMessageId: 143
+                }
+            });
+
+        // Quick Buttons
+        btn.addReply('🏓 PING', `${PREFIX}ping`);
+        btn.addReply('👤 OWNER', `${PREFIX}owner`);
+
+        // Select List Dropdown
+        btn.addSelection('☰ SELECT CATEGORY');
+        btn.makeSection('MAIN MENU CATEGORIES');
+
+        for (const cat of categories) {
+            btn.makeRow(
+                `⚡ ${toStylistUpper(cat.toUpperCase())}`, 
+                `Show all ${cat} commands`, 
+                '', 
+                `${PREFIX}menu ${cat}`
+            );
+        }
+
+        await btn.send(from, { quoted: mek });
 
     } catch (e) { 
         console.error("Menu Command Error:", e);
