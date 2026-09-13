@@ -32,7 +32,6 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const response = await axios.get(url, { timeout: 60000 });
         
         if (response.data) {
-            // Check for 'results' array as per API response structure
             let wallpapers = [];
             
             if (response.data.results && Array.isArray(response.data.results)) {
@@ -50,13 +49,16 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
                 return reply("❌ *Is query par koi wallpaper nahi mila, kuch aur search karein!*");
             }
 
-            // Support multiple possible keys for wallpaper image url
-            const wallpaperUrl = wallpapers[0]?.url || wallpapers[0]?.image || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : null);
+            // Fix for concatenated comma-separated string URLs returned by API
+            let rawUrl = wallpapers[0]?.url || wallpapers[0]?.image || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : null);
 
-            if (!wallpaperUrl) {
+            if (!rawUrl) {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply(`❌ *Wallpaper link extract nahi ho saka!* \n\n\`\`\`${JSON.stringify(response.data, null, 2)}\`\`\``);
+                return reply(`❌ *Wallpaper link extract nahi ho saka!*`);
             }
+
+            // Agar URL me comma ya multiple URLs jude hue hain toh pehla wala extract kar lo
+            const wallpaperUrl = rawUrl.split(',')[0].trim();
 
             const wpBox = `
 ╔════════════════════════╗
