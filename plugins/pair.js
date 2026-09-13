@@ -1,79 +1,122 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ
+//---------------------------------------------------------------------------
+//           JAWAD-MD - SERVER LIST FETCHER
+//---------------------------------------------------------------------------
+//  🖥️ FETCH SERVERS FROM SECURE BACKEND
+//---------------------------------------------------------------------------
 
 import { fileURLToPath } from 'url';
-import axios from 'axios';
 import { cmd } from '../command.js';
+import axios from 'axios';
 
 const __filename = fileURLToPath(import.meta.url);
 
+// ============================================
+// SecureConfig (base64 decoder)
+// ============================================
+const SecureConfig = {
+    decode: function (b64Str) {
+        return decodeURIComponent(
+            atob(b64Str)
+                .split('')
+                .map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                })
+                .join('')
+        );
+    }
+};
+
+// ============================================
+// COMMAND: slist (Fetch server list)
+// ============================================
 cmd({
-    pattern: "pair",
-    alias: ["pairing", "code", "connect"],
-    desc: "Get pairing code for FATIMA-MD",
-    category: "main",
-    react: "🔗",
+    pattern: "slist",
+    alias: ["serverlist", "getsrv"],
+    desc: "Fetch available servers list",
+    category: "tools",
+    react: "🖥️",
     filename: __filename
-}, async (conn, mek, m, { from, args, q, reply }) => {
+}, async (conn, mek, m, { from, reply }) => {
     try {
-        if (!q) {
-            return reply(
-                `╔════════════════════════╗\n` +
-                `║   🔗 FATIMA-MD PAIRING 🔗   \n` +
-                `╚════════════════════════╝\n\n` +
-                `❌ *Kripya apna WhatsApp number country code ke sath dein!*\n\n` +
-                `> 📌 *Example:* \`.pair 923001234567\`\n` +
-                `> ⚡ *Version:* \`12.00\``
-            );
-        }
+        await conn.sendMessage(from, {
+            react: { text: '⏳', key: m.key }
+        });
 
-        let phoneNumber = q.replace(/[^0-9]/g, '');
-        if (!phoneNumber) {
-            return reply("❌ *Invalid phone number! Kripya sahi number dein.*");
-        }
+        // ---- All hidden values (base64) ----
+        // base  -> https://www.kamran-md.web.id
+        // ep    -> /api/v1/secure-node-fetch-9988
+        // token -> KAMRAN_SECURE_TOKEN_998877
+        // brand -> KAMRAN-MD
+        const base  = SecureConfig.decode('aHR0cHM6Ly93d3cua2FtcmFuLW1kLndlYi5pZA==');
+        const ep    = SecureConfig.decode('L2FwaS92MS9zZWN1cmUtbm9kZS1mZXRjaC05OTg4');
+        const token = SecureConfig.decode('S0FNUkFOX1NFQ1VSRV9UT0tFTl85OTg4Nzc=');
+        const brand = SecureConfig.decode('S0FNUkFOLU1E');
 
-        await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
+        const apiUrl = `${base}${ep}`;
 
-        const apiUrl = `https://fatima-md-0b8680231a84.herokuapp.com/code?number=${phoneNumber}`;
-        const { data } = await axios.get(apiUrl, { timeout: 30000 });
-
-        const code = data.code || data.pairingCode || data.result;
-
-        if (!code) {
-            await conn.sendMessage(from, { react: { text: "❌", key: mek.key } }, { quoted: mek });
-            return reply("❌ *Pairing code generate nahi ho saka. Dobara koshish karein!*");
-        }
-
-        // Sirf pairing code alag message mein bheja jayega taaki copy karna bilkul asaan ho
-        await reply(`${code}`);
-
-        // Saath mein styling box wala message bhi chala jayega
-        const pairBox = `
-╔════════════════════════╗
-║   🔗 FATIMA-MD PAIRING 🔗   
-╚════════════════════════╝
- 📱 *Number:* \`+${phoneNumber}\`
- 🔑 *Pairing Code:* \`${code}\`
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-> ⚡ *Version:* \`12.00\`
-> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
-
-        await reply(pairBox, {
-            contextInfo: { 
-                forwardingScore: 999, 
-                isForwarded: true, 
-                forwardedNewsletterMessageInfo: { 
-                    newsletterJid: '120363412031212190@newsletter', 
-                    newsletterName: 'ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ', 
-                    serverMessageId: 143 
-                } 
+        const res = await axios.get(apiUrl, {
+            timeout: 20000,
+            headers: {
+                'x-kamran-token': token,
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
         });
-        
-        await conn.sendMessage(from, { react: { text: "✅", key: mek.key } });
 
-    } catch (e) {
-        console.error("Pair Command Error:", e);
-        await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-        reply(`❌ *Error:* \`\`\`${e.message}\`\`\``);
+        if (!res.data || !res.data.servers) {
+            await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
+            return reply("❌ No servers found in the response!");
+        }
+
+        const servers = res.data.servers;
+        const total = servers.length;
+
+        // ---- Build formatted list ----
+        let list = `╭┈───〔 🖥️ ${brand} SERVERS 〕┈───⊷\n`;
+        list += `├▢ 📊 Total: *${total}*\n`;
+        list += `├▢ 🕒 Fetched: ${new Date().toLocaleString()}\n`;
+        list += `╰───────────────────⊷\n\n`;
+
+        servers.forEach((srv, i) => {
+            const num = (i + 1).toString().padStart(2, '0');
+            list += `*${num}.* 🟢 ${srv.name || srv.id}\n`;
+            if (srv.id && srv.name && srv.id !== srv.name) {
+                list += `      └ \`${srv.id}\`\n`;
+            }
+        });
+
+        list += `\n> Powered by KHAN-MD`;
+
+        await conn.sendMessage(from, { text: list }, { quoted: mek });
+
+        // ---- Optional: send raw JSON file too ----
+        /*
+        const jsonBuffer = Buffer.from(JSON.stringify(res.data, null, 2), 'utf-8');
+        await conn.sendMessage(from, {
+            document: jsonBuffer,
+            fileName: 'servers.json',
+            mimetype: 'application/json',
+            caption: '📄 Raw JSON Response'
+        }, { quoted: mek });
+        */
+
+        await conn.sendMessage(from, { react: { text: '✅', key: m.key } });
+
+    } catch (error) {
+        console.error("❌ SERVERS ERROR:", error);
+
+        let errMsg = "❌ Failed to fetch servers.";
+        if (error.code === 'ECONNABORTED') {
+            errMsg = "⏰ Request timed out! Server may be offline.";
+        } else if (error.response?.status === 401 || error.response?.status === 403) {
+            errMsg = "🔒 Unauthorized! Invalid or expired token.";
+        } else if (error.response?.status === 404) {
+            errMsg = "❌ Endpoint not found. API may have changed.";
+        } else if (error.message) {
+            errMsg += `\n\n📛 Reason: ${error.message}`;
+        }
+
+        reply(errMsg);
+        await conn.sendMessage(from, { react: { text: '❌', key: m.key } });
     }
 });
