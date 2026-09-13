@@ -15,7 +15,18 @@ cmd({
 },
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => {
     try {
-        if (!q) {
+        // Agar query (q) nahi hai, lekin agar koi quoted message ya body me link hai toh use uthane ki koshish karein
+        let targetUrl = q;
+        if (!targetUrl && quoted && quoted.text) {
+            const match = quoted.text.match(/https:\/\/whatsapp\.com\/channel\/[^\s]+/);
+            if (match) targetUrl = match[0];
+        }
+        if (!targetUrl && body) {
+            const match = body.match(/https:\/\/whatsapp\.com\/channel\/[^\s]+/);
+            if (match) targetUrl = match[0];
+        }
+
+        if (!targetUrl) {
             return reply(
                 `╔════════════════════════╗\n` +
                 `║   📊 KAMRAN-MD WA CHANNEL STALK 📊   \n` +
@@ -28,7 +39,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
 
         await conn.sendMessage(from, { react: { text: "⏳", key: mek.key } });
 
-        const url = `https://api.princetechn.com/api/stalk/wachannel?apikey=prince&url=${encodeURIComponent(q)}`;
+        const url = `https://api.princetechn.com/api/stalk/wachannel?apikey=prince&url=${encodeURIComponent(targetUrl)}`;
         const response = await axios.get(url, { timeout: 60000 });
         
         if (response.data) {
@@ -79,8 +90,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         }
 
     } catch (e) {
-        console.error("WA Channel Command Error:", e);
         await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-        return reply(`❌ *Error occurred:* \`\`\`${e.message}\`\`\``);
+        return reply("❌ *Kuch galat ho gaya, kripya thodi der baad koshish karein!*");
     }
 });
