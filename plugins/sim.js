@@ -1,88 +1,51 @@
-// ꜰᴀᴛɪᴍᴀ-ᴍᴅ
-
-import { fileURLToPath } from 'url';
-import axios from 'axios';
 import { cmd } from '../command.js';
+import axios from 'axios';
+import config from '../config.js';
+import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 
 cmd({
-    pattern: "sim",
-    alias: ["simdb", "simdata"],
-    desc: "Find SIM info with FATIMA-MD style",
-    category: "tools",
-    react: "💎",
-    filename: __filename
-}, async (conn, m, store, { from, q, reply }) => {
-    try {
-        if (!q) {
-            return reply(
-                `╔════════════════════════╗\n` +
-                `║   💎 FATIMA-MD SIM DB  💎   \n` +
-                `╚════════════════════════╝\n\n` +
-                `❌ *Kripya phone number dein!*\n\n` +
-                `> 📌 *Example:* \`.sim 0303xxxxxxx\`\n` +
-                `> ⚡ *Version:* \`12.00\``
-            );
-        }
+  pattern: "playstore",
+  alias: ["ps", "appsearch"],
+  desc: "Search any Android app from Play Store.",
+  category: "utility",
+  react: "📱",
+  use: ".playstore <app name>",
+  filename: __filename
+}, async (conn, mek, m, { from, args, reply }) => {
+  try {
+    if (!args[0]) return reply("📍 Please provide an app name.\n\nExample: *.playstore Free Fire*");
 
-        let raw = q.replace(/\D/g, '');
-        if (raw.startsWith('92')) raw = '0' + raw.slice(2);
-        if (raw.length < 10 || raw.length > 11) {
-            return reply("❌ *Invalid number format! Please enter a valid 11-digit number.*");
-        }
-
-        const api = `https://fam-official.serv00.net/api/database.php?number=${raw}`;
-
-        await conn.sendMessage(from, {
-            react: { text: "🔍", key: m.key }
-        });
-
-        const { data: resp } = await axios.get(api, { timeout: 20000 });
-
-        if (!resp?.success || !resp?.data?.records?.length) {
-            await conn.sendMessage(from, { react: { text: "❌", key: m.key } });
-            return reply("❌ *No Record Found for this number!*");
-        }
-
-        const record = resp.data.records[0];
-
-        const name = record.full_name || "N/A";
-        const cnic = record.cnic || "N/A";
-        const address = record.address || "N/A";
-        const phone = record.phone || raw;
-
-        const simBox = `
-╔════════════════════════╗
-║   💎 FATIMA-MD SIM DB  💎   \n` +
-        `╚════════════════════════╝\n` +
-        ` 👤 *NAME:* \`${name}\`\n` +
-        ` 🪪 *CNIC:* \`${cnic}\`\n` +
-        ` 📍 *ADDR:* \`${address}\`\n` +
-        ` 📞 *NUM:* \`${phone}\`\n` +
-        `━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-        `> ⚡ *Version:* \`12.00\`\n` +
-        `> 👑 *Powered by ꜰᴀᴛɪᴍᴀ-ᴍᴅ*`.trim();
-
-        await reply(simBox, {
-            contextInfo: { 
-                forwardingScore: 999, 
-                isForwarded: true, 
-                forwardedNewsletterMessageInfo: { 
-                    newsletterJid: '120363412031212190@newsletter', 
-                    newsletterName: 'ꜰᴀᴛɪᴍᴀ-ᴍᴅ ᴏғғɪᴄɪᴀʟ', 
-                    serverMessageId: 143 
-                } 
-            }
-        });
-
-        await conn.sendMessage(from, {
-            react: { text: "✅", key: m.key }
-        });
-
-    } catch (e) {
-        console.error("SIM CMD ERROR:", e);
-        await conn.sendMessage(from, { react: { text: "❌", key: m.key } });
-        reply("❌ *Internal Error occurred while fetching SIM data.*");
+    const query = args.join(" ");
+    const apiUrl = `https://api.hanggts.xyz/search/playstore?q=${encodeURIComponent(query)}`;
+    
+    const { data } = await axios.get(apiUrl);
+    if (!data.status || !data.result || data.result.length === 0) {
+      return reply("❌ No results found for your query.");
     }
+
+    const app = data.result[0]; // Show only the first result
+
+    const caption = `
+📱 *PLAY STORE APP FOUND!*
+
+🏷️ *Name:* ${app.nama}
+👨‍💻 *Developer:* ${app.developer}
+⭐ *Rating:* ${app.rate2}
+🌐 *App Link:* ${app.link}
+🧑‍💻 *Dev Page:* ${app.link_dev}
+
+🔋 *Powered By DR KAMRAN🇵🇰*
+    `.trim();
+
+    await conn.sendMessage(from, {
+      image: { url: app.img },
+      caption
+    }, { quoted: mek });
+
+  } catch (err) {
+    console.error("PLAYSTORE SEARCH ERROR:", err);
+    reply("⚠️ Error fetching Play Store results. Please try again later.");
+  }
 });
