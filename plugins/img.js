@@ -49,16 +49,16 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
                 return reply("❌ *Is query par koi wallpaper nahi mila, kuch aur search karein!*");
             }
 
-            // Fix for concatenated comma-separated string URLs returned by API
-            let rawUrl = wallpapers[0]?.url || wallpapers[0]?.image || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : null);
+            // Safe extraction supporting object properties or direct strings
+            let rawUrl = wallpapers[0]?.url || wallpapers[0]?.image || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : '');
 
-            if (!rawUrl) {
+            if (!rawUrl || typeof rawUrl !== 'string') {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
                 return reply(`❌ *Wallpaper link extract nahi ho saka!*`);
             }
 
-            // Agar URL me comma ya multiple URLs jude hue hain toh pehla wala extract kar lo
-            const wallpaperUrl = rawUrl.split(',')[0].trim();
+            // Safe split check
+            const wallpaperUrl = rawUrl.includes(',') ? rawUrl.split(',')[0].trim() : rawUrl.trim();
 
             const wpBox = `
 ╔════════════════════════╗
