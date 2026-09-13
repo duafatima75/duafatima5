@@ -21,7 +21,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
                 `║   🌄 KAMRAN-MD WALLPAPER 🌄   \n` +
                 `╚════════════════════════╝\n\n` +
                 `❌ *Kripya wallpaper search ke liye query dein!*\n\n` +
-                `> 📌 *Example:* \`.wallpaper Sunset Scenes\`\n` +
+                `> 📌 *Example:* \`.wallpaper Sunset\`\n` +
                 `> ⚡ *Version:* \`12.00\``
             );
         }
@@ -31,32 +31,31 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, reply }) => 
         const url = `https://api.princetechn.com/api/search/wallpaper?apikey=prince&query=${encodeURIComponent(q)}`;
         const response = await axios.get(url, { timeout: 60000 });
         
-        // Debugging ke liye console log check karein
-        console.log("Wallpaper API Response:", response.data);
-
         if (response.data) {
+            // Check for 'results' array as per API response structure
             let wallpapers = [];
             
-            if (Array.isArray(response.data)) {
+            if (response.data.results && Array.isArray(response.data.results)) {
+                wallpapers = response.data.results;
+            } else if (Array.isArray(response.data)) {
                 wallpapers = response.data;
             } else if (response.data.result && Array.isArray(response.data.result)) {
                 wallpapers = response.data.result;
             } else if (response.data.data && Array.isArray(response.data.data)) {
                 wallpapers = response.data.data;
-            } else if (typeof response.data.result === 'string') {
-                wallpapers = [response.data.result];
-            } else if (typeof response.data === 'object') {
-                const possibleKey = Object.keys(response.data).find(k => Array.isArray(response.data[k]));
-                if (possibleKey) {
-                    wallpapers = response.data[possibleKey];
-                }
             }
 
-            const wallpaperUrl = wallpapers[0]?.url || wallpapers[0]?.image || wallpapers[0]?.link || (typeof wallpapers[0] === 'string' ? wallpapers[0] : null) || response.data.url || response.data.image;
+            if (wallpapers.length === 0) {
+                await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
+                return reply("❌ *Is query par koi wallpaper nahi mila, kuch aur search karein!*");
+            }
+
+            // Support multiple possible keys for wallpaper image url
+            const wallpaperUrl = wallpapers[0]?.url || wallpapers[0]?.image || wallpapers[0]?.link || wallpapers[0]?.img || (typeof wallpapers[0] === 'string' ? wallpapers[0] : null);
 
             if (!wallpaperUrl) {
                 await conn.sendMessage(from, { react: { text: "❌", key: mek.key } });
-                return reply(`❌ *Koi wallpaper nahi mila!* \n\n\`\`\`${JSON.stringify(response.data, null, 2)}\`\`\``);
+                return reply(`❌ *Wallpaper link extract nahi ho saka!* \n\n\`\`\`${JSON.stringify(response.data, null, 2)}\`\`\``);
             }
 
             const wpBox = `
